@@ -23,20 +23,13 @@ class DetailView(LoginRequiredMixin, generic.DetailView):
     login_url = "/users/login/"
     redirect_field_name = 'redirect_to'
     model = Collection
-    template_name = "cards/detail.html"
+    template_name = "cards/collection.html"
 
     def get_queryset(self):
         """
         Excludes any collections that aren't published yet.
         """
         return Collection.objects.filter(pub_date__lte=timezone.now())
-
-
-class ResultsView(LoginRequiredMixin, generic.DetailView):
-    login_url = "/users/login/"
-    redirect_field_name = 'redirect_to'
-    model = Collection
-    template_name = "cards/results.html"
 
 
 @login_required(login_url="/users/login/")
@@ -70,7 +63,7 @@ def submit(request, collection_id):
                     card.quantity = int(new_quantity)
                     card.save()
 
-    return render(request, "cards/detail.html", {"collection": collection})
+    return render(request, "cards/collection.html", {"collection": collection})
 
 
 
