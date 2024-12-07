@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Results{% endblock %} 
+{% block content %}
+    <h2>{{ collection.collection_name}}</h2>
+
+    <ul>
+    {% for card in collection.card_set.all %}
+        <li class="card-list">{{ card.quantity }} : {{ card.card_name }}</li>
+    {% endfor %}
+    </ul>
+
+    <a href="{% url 'cards:detail' collection.id %}">Add to {{ collection.collection_name}}?</a>
+{% endblock %}

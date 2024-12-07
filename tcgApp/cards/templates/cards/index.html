@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Home Page{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-3 mt-4">
+        <h2 class="mb-0">My Collections</h2>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCollectionModal">Add Collection</button>
+    </div>
+
+    {% if latest_collection_list %}
+    <ul class="list-group">
+        {% for collection in latest_collection_list %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <a href="{% url 'cards:detail' collection.id %}" id="collection-list-link">{{ collection.collection_name }}</a>
+            <button type="button" class="btn btn-danger btn-sm" onclick="openRemoveModal({{ collection.id }})">Remove</button>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+        <p>No collections are available.</p>
+    {% endif %}
+
+    <!-- Remove Collection Modal -->
+    <div class="modal fade" id="removeCollectionModal" tabindex="-1" aria-labelledby="removeCollectionModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="removeCollectionModalLabel">Confirm Removal</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to remove this collection?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form id="removeCollectionForm" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Yes, Remove</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Collection Modal -->
+    <div class="modal fade" id="addCollectionModal" tabindex="-1" aria-labelledby="addCollectionModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addCollectionModalLabel">Add New Collection</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="{% url 'cards:add_collection' %}" method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="collection_name" class="form-label">Collection Name</label>
+                            <input type="text" class="form-control" id="collection_name" name="collection_name" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Collection</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Open Remove Modal Script -->
+<script>
+    function openRemoveModal(collectionId) {
+        const form = document.getElementById('removeCollectionForm');
+        form.action = `/cards/remove_collection/${collectionId}/`;  // Set the form action dynamically
+        $('#removeCollectionModal').modal('show');
+    }
+</script>
+{% endblock %}

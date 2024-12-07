@@ -1,0 +1,266 @@
+/* Global Navbar Styles */
+nav {
+    display: flex;
+    align-items: center;
+    padding: 0 0.5rem;
+}
+nav h1 {
+    flex: auto;
+    margin: 0;
+}
+nav h1 a {
+    text-decoration: none;
+    padding: 0.25rem 0.5rem;
+}
+nav ul {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+nav ul li a,
+nav ul li span,
+header .action {
+    display: block;
+    padding: 0.5rem;
+}
+
+
+/* Light Mode Navbar */
+body.light-mode nav {
+    background-color: #f8f9fa !important;
+    color: black;
+}
+body.light-mode .navbar-light {
+    background-color: #f8f9fa !important;
+}
+body.light-mode .navbar-light .navbar-toggler-icon {
+    background-color: black;
+}
+
+/* Dark Mode Navbar */
+body.dark-mode nav {
+    background-color: #1c1e22 !important; /* Softer dark tone */
+    color: white;
+}
+body.dark-mode .navbar-light {
+    background-color: #1c1e22 !important; /* Softer dark tone */
+}
+body.dark-mode .navbar-light .navbar-toggler-icon {
+    background-color: white;
+}
+
+/* Text and Links in Navbar */
+body.dark-mode nav a,
+body.light-mode nav a {
+    color: white;
+}
+body.dark-mode nav a:hover {
+    color: #bbbbbb;
+}
+body.light-mode nav a:hover {
+    color: #064666;
+}
+
+/* Light Mode Text Color for Navbar Brand */
+body.light-mode nav a.navbar-brand {
+    color: #000000;
+}
+
+/* Global Body Styles */
+body {
+    font-family: sans-serif;
+    padding: 1rem;
+    margin: 0 auto;
+    transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition */
+}
+
+/* Light Mode */
+body.light-mode {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+/* Dark Mode */
+body.dark-mode {
+    background-color: #121212;
+    color: #ffffff;
+}
+
+/* Flash Messages */
+.flash {
+    margin: 1em 0;
+    padding: 1em;
+    background: #cae6f6;
+    border: 1px solid #377ba8;
+}
+
+/* Content Styles */
+.content {
+    padding: 0 1rem 1rem;
+}
+
+/* Form and Input Styles */
+.content form {
+    margin: 1em 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.content label {
+    font-weight: bold;
+    margin-bottom: 0.5em;
+}
+
+.content input,
+.content textarea {
+    margin-bottom: 1em;
+}
+
+.content textarea {
+    min-height: 12em;
+    resize: vertical;
+}
+
+input.danger {
+    color: #cc2f2e;
+}
+
+input[type=submit] {
+    align-self: start;
+    min-width: 10em;
+}
+
+.card-img {
+    max-width: 200px;
+    max-height: 300px;
+}
+
+/* Dark Mode Styles */
+body.dark-mode .content {
+    background-color: #333;
+}
+
+body.dark-mode .flash {
+    background: #2c2c2c;
+    border: 1px solid #377ba8;
+}
+
+body.dark-mode .post {
+    background-color: #333;
+    color: white;
+}
+
+body.dark-mode .post .about {
+    color: lightgray;
+}
+
+body.dark-mode .list-group-item {
+    background-color: #333;
+    color: white;
+}
+
+body.dark-mode input,
+body.dark-mode textarea {
+    background-color: #444;
+    color: white;
+    border: 1px solid #555;
+}
+
+body.dark-mode input[type=submit],
+body.dark-mode .btn-primary {
+    border: none;
+}
+
+/* Light Mode Styles */
+body.light-mode .content {
+    background-color: white;
+}
+
+body.light-mode .flash {
+    background: #cae6f6;
+    border: 1px solid #377ba8;
+}
+
+body.light-mode .post {
+    background-color: white;
+    color: black;
+}
+
+body.light-mode .post .about {
+    color: slategray;
+}
+
+body.light-mode .list-group-item {
+    background-color: white;
+    color: black;
+}
+
+body.light-mode input,
+body.light-mode textarea {
+    background-color: #f8f9fa;
+    color: black;
+    border: 1px solid #ddd;
+}
+
+body.light-mode input[type=submit],
+body.light-mode .btn-primary {
+    background-color: #377ba8;
+    border: none;
+}
+/* Dynamic Styles for Login/Register Buttons */
+body.light-mode .nav-authentication-links .btn-primary {
+    background-color: #377ba8;  /* Primary color */
+    color: white;  /* Ensure text is visible on the button */
+    border: none;
+}
+
+body.light-mode .nav-authentication-links .btn-secondary {
+    background-color: #f8f9fa;  /* Secondary background color */
+    color: #000000;  /* Ensure text is dark and visible */
+    border: 1px solid #ddd;  /* Light border */
+}
+
+body.dark-mode .nav-authentication-links .btn-primary {
+    background-color: #6c757d;  /* Primary color for dark mode */
+    color: white;  /* Text color white */
+    border: none;
+}
+
+body.dark-mode .nav-authentication-links .btn-secondary {
+    background-color: #343a40;  /* Dark background for secondary button */
+    color: white;  /* Ensure text is white */
+    border: 1px solid #555;  /* Darker border */
+}
+/* Dynamic Styles for Login/Register Page */
+body.light-mode .card-header h2,
+body.light-mode .card-body label {
+    color: black; /* Light mode text color */
+}
+
+body.dark-mode .card-header h2,
+body.dark-mode .card-body label {
+    color: black /* Dark mode text color */
+}
+
+/* Button Styles */
+body.light-mode .btn-primary {
+    background-color: #377ba8;  /* Primary color */
+    color: white;  /* Text color on the button */
+    border: none;
+}
+
+body.light-mode .btn-primary:hover {
+    background-color: #064666;  /* Darker color on hover */
+}
+
+body.dark-mode .btn-primary {
+    background-color: #6c757d;  /* Primary color for dark mode */
+    color: white;  /* Text color on the button */
+    border: none;
+}
+
+body.dark-mode .btn-primary:hover {
+    background-color: #5a6268;  /* Darker color on hover */
+}
+
