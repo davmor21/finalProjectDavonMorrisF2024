@@ -33,6 +33,28 @@ body {
 a {
     text-decoration: none !important;
 }
+#collection-list-item{
+    border: none !important;
+}
+#collection-name{
+    padding-bottom: 10px;
+}
+
+#add-collection,
+#add-card{
+    background-color: #28a644 !important;
+}
+#add-collection:hover,
+#add-card:hover{
+    background-color: #218336 !important;
+}
+
+.container{
+    padding: 30px;
+}
+.footer-link{
+    color: #377ba8;
+}
 /* Flash Messages */
 .flash {
     margin: 1em 0;
@@ -181,7 +203,7 @@ nav a {
 /* Dark Mode Styles */
 @media (prefers-color-scheme: dark) {
     body{
-        background-color: #121212 !important;
+        background-color: #1a1a1a !important;
     }
 
     .navbar-light,
@@ -191,24 +213,40 @@ nav a {
     .post,
     .modal-header,
     .modal-body,
-    .modal-content{
+    .modal-content,
+    .container,
+    .login-register-screen,
+    .card-header,
+    .card-body
+    {
         background-color: #1f1f1f !important;
     }
+
     #collection-list-link {
         color: #c38fff
     }
-    #add-collection,
-    #add-card{
-        background-color: #28a644 !important;
-    }
+
 
     *,
     #nav-title,
     #nav-username,
+    .card-header h2.login-register-h2,
+    .card-body label.requiredField,
+    .card-body .form-group label,
     input,
-    textarea {
+    textarea{
         color:white;
     }
+    .card-body strong{
+        color: red !important;
+    }
+    .card-body .text-muted{
+        color: white !important;
+    }
+    div.alert{
+        background-color: red !important;
+    }
+
     nav a:hover {
         color: #bbbbbb;
     }
@@ -260,4 +298,5 @@ nav a {
         color: white;  /* Ensure text is white */
         border: 1px solid #555;  /* Darker border */
     }
+}
 

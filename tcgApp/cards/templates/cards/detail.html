@@ -2,10 +2,11 @@
 {% block title %}Detail{% endblock %}
 
 {% block content %}
-<form id="cardForm" action="{% url 'cards:submit' collection.id %}" method="post"> <!-- Action to submit changes -->
+<div class="d-flex justify-content-between align-items-center mb-3 mt-4">
+    <form id="cardForm" action="{% url 'cards:submit' collection.id %}" method="post"> <!-- Action to submit changes -->
     {% csrf_token %}
     <fieldset>
-        <legend><h1>{{ collection.collection_name }}</h1></legend>
+        <legend><h2 id="collection-name">{{ collection.collection_name }}</h2></legend>
         {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
         <!-- Section for adding new cards -->
@@ -58,7 +59,9 @@
     <button type="button" class="btn btn-success" onclick="saveChanges()">Save</button>
 
     <button type="button" class="btn btn-primary" onclick="saveAndGoHome()">Go Home</button>
-</form>
+    </form>
+</div>
+
 
 <script>
     function increment(button) {
