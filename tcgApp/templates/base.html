@@ -11,15 +11,14 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">  <!-- Bootstrap Icons -->
     </head>
 
-  <body id="body" class="{% if request.session.theme == 'dark' %}dark-mode{% else %}light-mode{% endif %}">
-
+  <body id="body">
     <nav class="navbar navbar-expand-lg navbar-light bg-light justify-content-between">
-      <a class="navbar-brand collapse navbar-collapse" href="{% url 'cards:index' %}">MTG Card Collection</a>
+      <a class="navbar-brand collapse navbar-collapse" id="nav-title" href="{% url 'cards:index' %}">MTG Card Collection</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       {% if user.is_authenticated %}  
-        <h4 class="navbar navbar-text nav-username">{{ user.get_username }}</h4>
+        <h4 class="navbar navbar-text" id="nav-username">{{ user.get_username }}</h4>
         <form class="logout navbar" action="{% url 'users:logout' %}" method="post">
           {% csrf_token %}
           <button class="logout-button navbar btn btn-primary btn-lg ">Logout</button>
@@ -32,97 +31,19 @@
           <button class="btn btn-secondary btn-lg">Register</button>
         </a>  
       {% endif %}
-      
-      <!-- Dark/Light Mode Toggle Button -->
-      <button class="btn btn-secondary" id="themeToggle" data-toggle="tooltip" data-placement="top" title="Toggle Theme">
-        <i class="bi bi-sun" id="themeIcon"></i> <!-- Sun icon for light mode -->
-      </button>
+
     </nav>
 
     <div class="container">
         {% block content %}
         {% endblock %}
     </div>
-    
+
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
-
-    <script>
-        $(document).ready(function() {
-            // Initialize tooltip
-            $('#themeToggle').tooltip();
-
-            // Try to get theme from localStorage, fallback to server session theme
-            let currentTheme = localStorage.getItem('theme') || '{% if request.session.theme == "dark" %}dark{% else %}light{% endif %}';
-            const themeIcon = document.getElementById('themeIcon');
-            const themeToggle = document.getElementById('themeToggle');
-            const bodyElement = document.body;
-            const navElement = document.querySelector('nav'); // Select the navbar element
-
-            // Apply the theme based on localStorage or session (whichever is available)
-            if (currentTheme === 'dark') {
-                bodyElement.classList.add('dark-mode');
-                bodyElement.classList.remove('light-mode');
-                themeIcon.classList.remove('bi-sun');
-                themeIcon.classList.add('bi-moon');
-                navElement.classList.add('navbar-dark');
-                navElement.classList.remove('navbar-light');
-            } else {
-                bodyElement.classList.add('light-mode');
-                bodyElement.classList.remove('dark-mode');
-                themeIcon.classList.remove('bi-moon');
-                themeIcon.classList.add('bi-sun');
-                navElement.classList.add('navbar-light');
-                navElement.classList.remove('navbar-dark');
-            }
-
-            // Toggle theme on button click
-            $('#themeToggle').on('click', function() {
-                const newTheme = bodyElement.classList.contains('dark-mode') ? 'light' : 'dark';
-
-                // Switch body and navbar class based on new theme
-                if (newTheme === 'dark') {
-                    bodyElement.classList.add('dark-mode');
-                    bodyElement.classList.remove('light-mode');
-                    navElement.classList.add('navbar-dark');
-                    navElement.classList.remove('navbar-light');
-                    themeIcon.classList.remove('bi-sun');
-                    themeIcon.classList.add('bi-moon');
-                    
-                } else {
-                    bodyElement.classList.add('light-mode');
-                    bodyElement.classList.remove('dark-mode');
-                    navElement.classList.add('navbar-light');
-                    navElement.classList.remove('navbar-dark');
-                    themeIcon.classList.remove('bi-moon');
-                    themeIcon.classList.add('bi-sun');
-                }
-
-                // Save the theme to localStorage
-                localStorage.setItem('theme', newTheme);
-
-                // Send theme to server and update session
-                $.ajax({
-                    url: '/set_theme/',  // The URL to handle the theme change
-                    type: 'POST',
-                    data: JSON.stringify({ theme: newTheme }),
-                    contentType: 'application/json',
-                    headers: {
-                        'X-CSRFToken': $('meta[name="csrf-token"]').attr('content')  // Include the CSRF token
-                    },
-                    success: function(response) {
-                        // The theme is saved in the session, so no need to reload
-                    },
-                    error: function(error) {
-                        console.error('Error updating theme:', error);
-                    }
-                });
-            });
-        });
-    </script>
 
   </body>
 </html>
