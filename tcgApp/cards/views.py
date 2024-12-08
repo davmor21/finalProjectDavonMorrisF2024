@@ -131,6 +131,13 @@ def fetch_card_data(card_name):
         logger.warning("Card '%s' not found in Scryfall.", card_name)
         return None
 
+    # Check if the card is double-faced and has 'card_faces'
+    if 'card_faces' in data:
+        card_face = data['card_faces'][0]
+        card_image_url = card_face.get('image_uris', {}).get('normal', '')
+    else:
+        card_image_url = data.get('image_uris', {}).get('normal', '')
+
     # Extract card details, providing defaults if the data is missing
     card_info = {
         'card_name': data.get('name', 'N/A'),
@@ -138,44 +145,18 @@ def fetch_card_data(card_name):
         'color': ', '.join(data.get('colors', [])) if 'colors' in data else 'N/A',
         'mana_cost': data.get('mana_cost', 'N/A'),
         'set_name': data.get('set_name', 'N/A'),
-        'price_usd': data.get('prices', {}).get('usd', 'N/A'),
+        'image_url': card_image_url,
+        'price_usd': data.get('prices', {}).get('usd', None),  # Set to None if price is not available
     }
-
-    # Handle double-sided cards (fetch details from both sides)
-    if 'card_faces' in data:
-        # First face
-        first_face = data['card_faces'][0]
-        card_info['card_name'] = first_face.get('name', card_info['card_name'])
-        card_info['card_type'] = first_face.get('type_line', card_info['card_type'])
-        card_info['color'] = ', '.join(first_face.get('colors', [])) if 'colors' in first_face else card_info['color']
-        card_info['mana_cost'] = first_face.get('mana_cost', card_info['mana_cost'])
-        card_info['image_url'] = first_face.get('image_uris', {}).get('normal', '')
-
-        # Second face (if it exists and the first face doesn't provide data)
-        if len(data['card_faces']) > 1:
-            second_face = data['card_faces'][1]
-            # For the second face, use its image and mana cost if not set by the first face
-            if not card_info['image_url']:
-                card_info['image_url'] = second_face.get('image_uris', {}).get('normal', '')
-            if card_info['mana_cost'] == 'N/A':
-                card_info['mana_cost'] = second_face.get('mana_cost', 'N/A')
-            if card_info['color'] == 'N/A':
-                card_info['color'] = ', '.join(second_face.get('colors', [])) if 'colors' in second_face else 'N/A'
-
-    # If no image URL is set, leave it blank or provide a default
-    if not card_info['image_url']:
-        card_info['image_url'] = ''  # Or set a default placeholder image URL
 
     logger.info("Fetched data for card '%s': %s", card_name, card_info)
     return card_info
-
 
 
 @login_required
 def add_cards_to_collection(request, collection_id):
     try:
         if request.method == 'POST':
-            # Ensure the collection exists
             collection = get_object_or_404(Collection, id=collection_id)
 
             # Parse the JSON data
@@ -188,21 +169,35 @@ def add_cards_to_collection(request, collection_id):
             # Process each selected card and add it to the collection
             for card_data in selected_cards:
                 card_name = card_data.get('name')
-                card_image_url = card_data.get('image', '')  # Get image URL, default to empty string if missing
                 card_quantity = card_data.get('quantity', 1)
 
-                # Log the card details for debugging
-                logger.info(f"Processing card: {card_name}, Image URL: {card_image_url}, Quantity: {card_quantity}")
+                # Fetch additional card data
+                card_info = fetch_card_data(card_name)
+                if not card_info:
+                    logger.error(f"Failed to fetch data for card: {card_name}")
+                    continue  # Skip this card if fetch fails
 
-                # Handle missing image_url gracefully
-                if not card_image_url:
-                    card_image_url = ''  # You can replace with a default image URL if preferred
+                # Extract details from the fetched data
+                card_type = card_info.get('card_type', '')
+                card_color = card_info.get('color', '')
+                mana_cost = card_info.get('mana_cost', '')
+                set_name = card_info.get('set_name', '')
+                price_usd = card_info.get('price_usd', '')
+                card_image_url = card_info.get('image_url', '')
 
-                # Check if the card already exists in the collection
+                # Create or update the card in the collection
                 card, created = Card.objects.get_or_create(
-                    card_name=card_name,  # Ensure the card name matches
-                    collection=collection,  # Ensure it's in the correct collection
-                    defaults={'image_url': card_image_url, 'quantity': card_quantity}
+                    card_name=card_name,
+                    collection=collection,
+                    defaults={
+                        'card_type': card_type,
+                        'color': card_color,
+                        'mana_cost': mana_cost,
+                        'set_name': set_name,
+                        'price_usd': price_usd,
+                        'image_url': card_image_url,
+                        'quantity': card_quantity
+                    }
                 )
 
                 # If the card already exists, update the quantity
@@ -210,11 +205,7 @@ def add_cards_to_collection(request, collection_id):
                     card.quantity += card_quantity
                     card.save()
 
-                # Log whether a new card was created or an existing one was updated
-                if created:
-                    logger.info(f"New card created: {card_name}")
-                else:
-                    logger.info(f"Card updated: {card_name}, New Quantity: {card.quantity}")
+                logger.info(f"Card {'created' if created else 'updated'}: {card_name}, Quantity: {card.quantity}")
 
             return JsonResponse({'status': 'success', 'message': 'Cards added to collection'})
 
@@ -222,7 +213,6 @@ def add_cards_to_collection(request, collection_id):
             return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
 
     except Exception as e:
-        # Log the error for debugging
         logger.error(f"Error occurred while adding cards to collection '{collection_id}': {str(e)}")
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
