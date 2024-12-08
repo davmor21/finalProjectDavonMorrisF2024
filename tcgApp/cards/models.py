@@ -16,16 +16,23 @@ class Collection(models.Model):
         now = timezone.now()
         return now - datetime.timedelta(days=1) <= self.pub_date <= now
 
+    @property
+    def total_price(self):
+        # Use reverse relationship to access cards
+        return sum(card.price_usd or 0 for card in self.card_set.all())
+
 
 class Card(models.Model):
-    collection = models.ForeignKey('Collection', on_delete=models.CASCADE)
+    collection = models.ForeignKey(Collection, on_delete=models.CASCADE)
     card_name = models.CharField(max_length=200)
-    card_type = models.CharField(max_length=200, blank=True)  # Type of card (Creature, Instant, etc.)
-    color = models.CharField(max_length=100, blank=True)  # Color of the card (e.g., Red, Green)
-    mana_cost = models.CharField(max_length=100, blank=True)  # Mana cost (e.g., {3}{R}, {1}{G}{G}, etc.)
-    set_name = models.CharField(max_length=100, blank=True)  # The set the card is from (e.g., Innistrad Remastered)
-    image_url = models.URLField(blank=True)  # URL of the card image
-    price_usd = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)  # Price in USD
+    card_type = models.CharField(max_length=100, blank=True)  # Store card type (creature, instant, etc.)
+    color = models.CharField(max_length=50, blank=True)  # Store color (Red, Green, etc.)
+    mana_cost = models.CharField(max_length=50, blank=True)  # Store mana cost (e.g., {1}{G}, etc.)
+    set_name = models.CharField(max_length=100, blank=True)  # Store the set name (e.g., Core Set 2020)
+    image_url = models.URLField(blank=True)  # Store image URL of the card
+    price_usd = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)  # Store card price
+    quantity = models.PositiveIntegerField(default=1)
 
     def __str__(self):
         return self.card_name
+

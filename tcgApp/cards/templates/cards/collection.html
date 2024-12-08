@@ -1,9 +1,10 @@
 {% extends 'base.html' %}
+
 {% block title %}Detail{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3 mt-4">
-    <form id="cardForm" action="{% url 'cards:submit' collection.id %}" method="post"> <!-- Action to submit changes -->
+    <form id="cardForm" action="{% url 'cards:submit' collection.id %}" method="post">
     {% csrf_token %}
     <fieldset>
         <legend><h2 id="collection-name">{{ collection.collection_name }}</h2></legend>
@@ -32,36 +33,53 @@
         </div>
         <button type="button" class="btn btn-secondary mt-2" id="add-card" onclick="addCardInput()">Add Another Card</button>
 
-        <!-- Existing cards list with editable quantities -->
+        <!-- Existing cards list in table format -->
         <h3 class="mt-4">Existing Cards</h3>
-        {% for card in collection.card_set.all %}
-            <div class="mb-3 row align-items-center existing-card" id="card_{{ card.id }}">
-                <div class="col-md-6">
-                    <label class="form-label">{{ card.card_name }}</label>
-                </div>
-                <div class="col-md-3">
-                    <div class="input-group">
-                        <input type="number" name="quantity_{{ card.id }}" class="form-control" value="{{ card.quantity }}" min="0">
-                        <div class="input-group-append">
-                            <button type="button" class="btn btn-outline-secondary" onclick="decrement(this)">-</button>
-                            <button type="button" class="btn btn-outline-secondary" onclick="increment(this)">+</button>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Card Name</th>
+                    <th>Card Type</th>
+                    <th>Color</th>
+                    <th>Mana Cost</th>
+                    <th>Set Name</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for card in collection.card_set.all %}
+                <tr id="card_{{ card.id }}">
+                    <td>{{ card.card_name }}</td>
+                    <td>{{ card.card_type }}</td>
+                    <td>{{ card.color }}</td>
+                    <td>{{ card.mana_cost }}</td>
+                    <td>{{ card.set_name }}</td>
+                    <td>${{ card.price_usd|default:0 }}</td>
+                    <td>
+                        <div class="input-group">
+                            <input type="number" name="quantity_{{ card.id }}" class="form-control" value="{{ card.quantity }}" min="0">
+                            <div class="input-group-append">
+                                <button type="button" class="btn btn-outline-secondary" onclick="decrement(this)">-</button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="increment(this)">+</button>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <button type="button" class="btn btn-danger" onclick="removeCardFromCollection({{ card.id }})">Remove</button>
-                </div>
-            </div>
-        {% endfor %}
-
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-danger" onclick="removeCardFromCollection({{ card.id }})">Remove</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </fieldset>
-    <!-- Save button: Save changes and refresh page -->
+    
+    <!-- Save and Home buttons -->
     <button type="button" class="btn btn-success" onclick="saveChanges()">Save</button>
-
     <button type="button" class="btn btn-primary" onclick="saveAndGoHome()">Go Home</button>
     </form>
 </div>
-
 
 <script>
     function increment(button) {
@@ -104,7 +122,6 @@
     function removeCardFromCollection(cardId) {
         let form = document.getElementById("cardForm");
         if (form) {
-         
             let input = document.createElement("input");
             input.type = "hidden";
             input.name = "delete_card_ids[]";  
@@ -126,32 +143,27 @@
     function saveChanges() {
         const form = document.getElementById("cardForm");
 
-        
         let saveInput = document.createElement("input");
         saveInput.type = "hidden";
         saveInput.name = "save_changes"; 
         saveInput.value = "true";
         form.appendChild(saveInput);
 
-       
         form.submit();
     }
 
     function saveAndGoHome() {
-    const form = document.getElementById("cardForm");
+        const form = document.getElementById("cardForm");
 
-  
-    let saveInput = document.createElement("input");
-    saveInput.type = "hidden";
-    saveInput.name = "save_changes";  
-    saveInput.value = "true";
-    form.appendChild(saveInput);
+        let saveInput = document.createElement("input");
+        saveInput.type = "hidden";
+        saveInput.name = "save_changes";  
+        saveInput.value = "true";
+        form.appendChild(saveInput);
 
-   
-    form.action = "{% url 'cards:index' %}";
+        form.action = "{% url 'cards:index' %}";
 
-    
-    form.submit();
-}
+        form.submit();
+    }
 </script>
 {% endblock %}

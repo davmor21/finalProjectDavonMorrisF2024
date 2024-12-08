@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load crispy_forms_filters %}
+{% load crispy_forms_tags %}
+
+{% block title %}Add Card to Collection{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Add Card to Collection</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        {{ form | crispy }}
+                        <button type="submit" class="btn btn-primary">Add Card</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+ <div id="new-cards-section">
+            <h3>Add New Cards</h3>
+            <div class="mb-3 row align-items-center new-card">
+                <div class="col-md-6">
+                    <input type="text" name="new_card_name[]" class="form-control" placeholder="Enter new card name">
+                </div>
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <input type="number" name="new_card_quantity[]" class="form-control" value="1" min="1">
+                        <div class="input-group-append">
+                            <button type="button" class="btn btn-outline-secondary" onclick="decrement(this)">-</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="increment(this)">+</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <button type="button" class="btn btn-danger" onclick="removeCard(this)">Remove</button>
+                </div>
+            </div>
+        </div>

@@ -2,6 +2,8 @@ from django.db.models import F
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
+from .models import Card
+import requests
 from django import forms
 from django.views import generic
 from django.utils import timezone
@@ -112,3 +114,66 @@ def add_collection(request):
 def user_collections(request):
     collections = Collection.objects.filter(user=request.user)  # Filter by logged-in user
     return render(request, 'cards/collection.html', {'collections': collections})
+
+
+def fetch_card_data(card_name):
+    url = f"https://api.scryfall.com/cards/named?fuzzy={card_name}"
+    response = requests.get(url)
+    data = response.json()
+
+    # Handle if the card is not found
+    if 'error' in data:
+        return None
+
+    # Extract card details
+    card_info = {
+        'card_name': data['name'],
+        'card_type': data['type_line'],
+        'color': ', '.join(data['colors']) if 'colors' in data else 'N/A',
+        'mana_cost': data['mana_cost'] if 'mana_cost' in data else 'N/A',
+        'set_name': data['set_name'],
+        'image_url': data['image_uris']['normal'] if 'image_uris' in data else '',
+        'price_usd': data['prices']['usd'] if 'usd' in data['prices'] else 'N/A',
+    }
+
+    return card_info
+
+class AddCardForm(forms.Form):
+    card_name = forms.CharField(max_length=255, label="Card Name")
+
+# Function to handle adding a new card
+def add_card_to_collection(request, collection_id):
+    collection = Collection.objects.get(pk=collection_id)
+
+    if request.method == 'POST':
+        form = AddCardForm(request.POST)
+        if form.is_valid():
+            card_name = form.cleaned_data['card_name']
+
+            # Fetch card data from Scryfall
+            card_data = fetch_card_data(card_name)
+
+            if card_data:
+                # Create and save the card
+                card = Card(
+                    collection=collection,
+                    card_name=card_data['card_name'],
+                    card_type=card_data['card_type'],
+                    color=card_data['color'],
+                    mana_cost=card_data['mana_cost'],
+                    set_name=card_data['set_name'],
+                    image_url=card_data['image_url'],
+                    price_usd=card_data['price_usd']
+                )
+                card.save()
+
+                return redirect('cards:collection', collection_id=collection.id)
+            else:
+                # Handle the case where card is not found
+                form.add_error('card_name', 'Card not found in Scryfall API')
+
+    else:
+        form = AddCardForm()
+
+    return render(request, 'cards/add_card.html', {'form': form, 'collection': collection})
+
