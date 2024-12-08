@@ -23,4 +23,9 @@ class CollectionAdmin(admin.ModelAdmin):
     list_filter = ["pub_date", "user"]  # You can also filter by "user"
     search_fields = ["collection_name", "user__username"]  # Enable search by "user's username"
 
+class CardAdmin(admin.ModelAdmin):
+    list_display = ["card_name", "card_type", "color", "mana_cost", "set_name", "price_usd"]
+    search_fields = ["card_name", "card_type", "set_name"]
+
 admin.site.register(Collection, CollectionAdmin)
+admin.site.register(Card, CardAdmin)
