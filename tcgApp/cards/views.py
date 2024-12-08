@@ -120,6 +120,25 @@ def user_collections(request):
     collections = Collection.objects.filter(user=request.user)  # Filter by logged-in user
     return render(request, 'cards/collection.html', {'collections': collections})
 
+# Mapping of color abbreviations to full names
+COLOR_MAPPING = {
+    'U': 'Blue',
+    'W': 'White',
+    'B': 'Black',
+    'R': 'Red',
+    'G': 'Green',
+    'C': 'Colorless',  # For colorless cards
+}
+
+def get_full_color_names(colors):
+    """
+    Converts a list of color abbreviations to their full names.
+    """
+    if not colors:
+        return 'N/A'
+    return ', '.join([COLOR_MAPPING.get(color, color) for color in colors])
+
+
 def fetch_card_data(card_name):
     logger.info("Fetching card data for card name '%s'.", card_name)
     url = f"https://api.scryfall.com/cards/named?fuzzy={card_name}"
@@ -131,26 +150,20 @@ def fetch_card_data(card_name):
         logger.warning("Card '%s' not found in Scryfall.", card_name)
         return None
 
-    # Check if the card is double-faced and has 'card_faces'
-    if 'card_faces' in data:
-        card_face = data['card_faces'][0]
-        card_image_url = card_face.get('image_uris', {}).get('normal', '')
-    else:
-        card_image_url = data.get('image_uris', {}).get('normal', '')
-
     # Extract card details, providing defaults if the data is missing
     card_info = {
-        'card_name': data.get('name', 'N/A'),
-        'card_type': data.get('type_line', 'N/A'),
-        'color': ', '.join(data.get('colors', [])) if 'colors' in data else 'N/A',
-        'mana_cost': data.get('mana_cost', 'N/A'),
-        'set_name': data.get('set_name', 'N/A'),
-        'image_url': card_image_url,
-        'price_usd': data.get('prices', {}).get('usd', None),  # Set to None if price is not available
+        'card_name': data.get('name', 'N/A'),  # Card name, default 'N/A' if missing
+        'card_type': data.get('type_line', 'N/A'),  # Card type, default 'N/A' if missing
+        'color': get_full_color_names(data.get('colors', [])),  # Convert color abbreviations to full names
+        'mana_cost': data.get('mana_cost', 'N/A'),  # Mana cost, default 'N/A' if missing
+        'set_name': data.get('set_name', 'N/A'),  # Set name, default 'N/A' if missing
+        'image_url': data.get('image_uris', {}).get('normal', ''),  # Image URL, default '' if missing
+        'price_usd': data.get('prices', {}).get('usd', 'N/A'),  # Price, default 'N/A' if missing
     }
 
     logger.info("Fetched data for card '%s': %s", card_name, card_info)
     return card_info
+
 
 
 @login_required
