@@ -109,10 +109,31 @@
             let cardElement = document.createElement('div');
             cardElement.classList.add('col-md-3', 'mb-3');
             cardElement.setAttribute('id', `card-${card.id}`); // Add ID for styling
+
+            let cardFacesHtml = '';
+            if (isSplitCard) {
+                // Generate HTML for the front and back faces of the card
+                cardFacesHtml = `
+                    <div id="front-${card.id}" class="card-face">
+                        <img src="${card.card_faces[0].image_uris.png}" alt="Front of ${cardName}" class="card-img-top">
+                    </div>
+                    <div id="back-${card.id}" class="card-face" style="display:none;">
+                        <img src="${card.card_faces[1].image_uris.png}" alt="Back of ${cardName}" class="card-img-top">
+                    </div>
+                `;
+            } else {
+                // Only show one face for normal cards
+                cardFacesHtml = `
+                    <div id="front-${card.id}" class="card-face">
+                        <img src="${cardImageUrl}" alt="${cardName}" class="card-img-top">
+                    </div>
+                `;
+            }
+
             cardElement.innerHTML = `
                 <div class="card card-item" data-id="${card.id}" id="card-${card.id}">
                     <h5 class="card-title">${cardName}</h5>
-                    <img src="${cardImageUrl}" alt="${cardName}" class="card-img-top" id="card-image-${card.id}">
+                    ${cardFacesHtml}
                     <div class="card-body">
                         <button type="button" class="btn btn-outline-primary select-card" data-id="${card.id}" id="select-button-${card.id}">Select</button>
                         ${isSplitCard ? `<button type="button" class="btn btn-info flip-card mt-2" onclick="flipCard('${card.id}')">Flip</button>` : ''}
@@ -136,6 +157,18 @@
                 handleCardSelection(this, cardId, cardName, cardImageUrl);
             });
         });
+    }
+
+    // Function to flip between the front and back faces of a double-sided card
+    function flipCard(cardId) {
+        let front = document.getElementById(`front-${cardId}`);
+        let back = document.getElementById(`back-${cardId}`);
+
+        if (front && back) {
+            // Toggle visibility of front and back faces
+            front.style.display = (front.style.display === 'none') ? 'block' : 'none';
+            back.style.display = (back.style.display === 'none') ? 'block' : 'none';
+        }
     }
 
     // Handle card selection for selected cards grid
