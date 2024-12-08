@@ -19,7 +19,7 @@ def IndexView(request):
     return render(request, 'cards/index.html', {'latest_collection_list': latest_collection_list})
 
 
-class DetailView(LoginRequiredMixin, generic.DetailView):
+class CollectionView(LoginRequiredMixin, generic.DetailView):
     login_url = "/users/login/"
     redirect_field_name = 'redirect_to'
     model = Collection
@@ -103,19 +103,3 @@ def add_collection(request):
         form = CollectionForm()
 
     return render(request, 'cards/add_collection.html', {'form': form})
-
-@csrf_exempt
-def set_theme(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)  # Get the data from the POST request
-            theme = data.get('theme')
-            if theme not in ['light', 'dark']:
-                return JsonResponse({'error': 'Invalid theme'}, status=400)
-
-            # Store the theme in the session
-            request.session['theme'] = theme
-            return JsonResponse({'success': True})
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid data format'}, status=400)
-    return JsonResponse({'error': 'Invalid request'}, status=400)

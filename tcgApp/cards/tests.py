@@ -100,7 +100,7 @@ class CollectionIndexViewTests(TestCase):
             [collection2, collection1],
         )
 
-class CollectionDetailViewTests(TestCase):
+class CollectionViewTests(TestCase):
     def test_future_collection(self):
         """
         The detail view of a collection with a pub_date in the future
