@@ -33,8 +33,12 @@ body {
 a {
     text-decoration: none !important;
 }
-#collection-list-item{
+#collection-list-item,
+.card-item{
     border: none !important;
+}
+*{
+    border: none;
 }
 #collection-name{
     padding-bottom: 10px;
@@ -249,6 +253,17 @@ nav a {
 
     nav a:hover {
         color: #bbbbbb;
+    }
+
+    h5.card-title{
+        color: white;
+        background-color: #1f1f1f !important;
+    }
+    div.card,
+    img.card-img-top,
+    img,
+    fieldset{
+        background-color: #1f1f1f !important;
     }
 
     .flash {

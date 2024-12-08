@@ -22,13 +22,12 @@
             <!-- Dynamically populated cards will go here -->
         </div>
 
-        <!-- Card Details Preview -->
-        <div id="card-details" class="mt-4" style="display:none;">
-            <h4>Card Details</h4>
-            <div id="card-detail-content">
-                <!-- This will be dynamically populated with card details -->
+        <!-- Selected Cards Section -->
+        <div id="selected-cards-section" class="mt-4">
+            <h3>Selected Cards</h3>
+            <div id="selected-cards-grid" class="row">
+                <!-- Dynamically populated selected cards will go here -->
             </div>
-            <button type="button" id="add-to-collection" class="btn btn-success">Add to Collection</button>
         </div>
 
         <!-- Add Selected Cards to Collection -->
@@ -85,7 +84,8 @@
 
     // Fetch cards based on the search query from Scryfall API
     function fetchCards(query) {
-        let url = `https://api.scryfall.com/cards/search?q=${query}&unique=cards`;
+        let sanitizedQuery = encodeURIComponent(query);  // Sanitize the query for special characters
+        let url = `https://api.scryfall.com/cards/search?q=${sanitizedQuery}&unique=cards`;
         fetch(url)
             .then(response => response.json())
             .then(data => displaySearchResults(data));
@@ -97,74 +97,94 @@
         gridContainer.innerHTML = ''; // Clear previous results
 
         data.data.forEach(card => {
+            let cardName = card.name;
+            let cardImageUrl = card.image_uris ? card.image_uris.png : null;  // Use PNG with transparent background
+            let isSplitCard = card.card_faces && card.card_faces.length > 1;
+
+            // If no image is found, we use the card's name as a fallback
+            if (!cardImageUrl) {
+                cardImageUrl = `https://via.placeholder.com/150?text=${cardName}`;
+            }
+
             let cardElement = document.createElement('div');
             cardElement.classList.add('col-md-3', 'mb-3');
+            cardElement.setAttribute('id', `card-${card.id}`); // Add ID for styling
             cardElement.innerHTML = `
-                <div class="card" onclick="showCardDetails('${card.id}')">
-                    <img src="${card.image_uris.normal}" alt="${card.name}" class="card-img-top">
+                <div class="card card-item" data-id="${card.id}" id="card-${card.id}">
+                    <h5 class="card-title">${cardName}</h5>
+                    <img src="${cardImageUrl}" alt="${cardName}" class="card-img-top" id="card-image-${card.id}">
                     <div class="card-body">
-                        <button type="button" class="btn btn-outline-primary select-card" data-id="${card.id}">Select</button>
+                        <button type="button" class="btn btn-outline-primary select-card" data-id="${card.id}" id="select-button-${card.id}">Select</button>
+                        ${isSplitCard ? `<button type="button" class="btn btn-info flip-card mt-2" onclick="flipCard('${card.id}')">Flip</button>` : ''}
                     </div>
                 </div>
             `;
             gridContainer.appendChild(cardElement);
         });
 
-        // Add event listeners to select buttons
-        let selectButtons = document.querySelectorAll('.select-card');
-        selectButtons.forEach(button => {
+        // Add event listener to handle card selection dynamically
+        document.querySelectorAll('.select-card').forEach(button => {
             button.addEventListener('click', function() {
+                let cardId = this.getAttribute('data-id');
+                let cardName = this.closest('.card').querySelector('.card-title').textContent;
+                let cardImageUrl = this.closest('.card').querySelector('img').src;
+
                 this.classList.toggle('btn-success');
                 this.classList.toggle('btn-outline-primary');
                 this.textContent = this.classList.contains('btn-success') ? 'Selected' : 'Select';
+
+                handleCardSelection(this, cardId, cardName, cardImageUrl);
             });
         });
     }
 
-    // Show the detailed view of a selected card
-    function showCardDetails(cardId) {
-        let url = `https://api.scryfall.com/cards/${cardId}`;
-        fetch(url)
-            .then(response => response.json())
-            .then(data => {
-                let detailsDiv = document.getElementById('card-detail-content');
-                detailsDiv.innerHTML = `
-                    <img src="${data.image_uris.normal}" alt="${data.name}" class="img-fluid">
-                    <p><strong>Name:</strong> ${data.name}</p>
-                    <p><strong>Type:</strong> ${data.type_line}</p>
-                    <p><strong>Color:</strong> ${data.colors.join(', ')}</p>
-                    <p><strong>Mana Cost:</strong> ${data.mana_cost || 'N/A'}</p>
-                    <p><strong>Set:</strong> ${data.set_name}</p>
-                    <p><strong>Price (USD):</strong> $${data.prices.usd || 'N/A'}</p>
-                `;
-                document.getElementById('card-details').style.display = 'block';
-                document.getElementById('add-to-collection').onclick = function() {
-                    addCardToCollection(data);
-                };
-            });
+    // Handle card selection for selected cards grid
+    let selectedCards = [];
+
+    function handleCardSelection(button, cardId, cardName, cardImageUrl) {
+        if (button.classList.contains('btn-success')) {
+            selectedCards.push({ id: cardId, name: cardName, image: cardImageUrl });
+        } else {
+            selectedCards = selectedCards.filter(card => card.id !== cardId);
+        }
+        updateSelectedCardsGrid();
     }
 
-    // Add a selected card to the collection
-    function addCardToCollection(cardData) {
-        // Example: Add the card to the form data, or send a request to your backend to add the card
-        alert(`Adding ${cardData.name} to the collection`);
-        // Actual form submission or API request can go here
+    // Update the "Selected Cards" grid
+    function updateSelectedCardsGrid() {
+        let selectedGrid = document.getElementById('selected-cards-grid');
+        selectedGrid.innerHTML = ''; // Clear previous selected cards
+
+        selectedCards.forEach(card => {
+            let cardElement = document.createElement('div');
+            cardElement.classList.add('col-md-3', 'mb-3');
+            cardElement.innerHTML = `
+                <div class="card selected-card" id="selected-card-${card.id}">
+                    <img src="${card.image}" alt="Selected Card" class="card-img-top" onmouseover="this.style.transform='scale(1.5)'" onmouseout="this.style.transform='scale(1)'">
+                </div>
+            `;
+            selectedGrid.appendChild(cardElement);
+        });
     }
 
     // Add all selected cards to the collection
     document.getElementById('add-selected').addEventListener('click', function() {
-        let selectedCards = [];
-        let selectButtons = document.querySelectorAll('.select-card.btn-success');
-        selectButtons.forEach(button => {
-            selectedCards.push(button.getAttribute('data-id'));
-        });
         if (selectedCards.length > 0) {
-            // Example: Add selected cards to the collection (e.g., send data to backend)
-            alert('Adding selected cards to the collection: ' + selectedCards.join(', '));
-            // Submit the form with selected cards
+            let cardNames = selectedCards.map(card => card.name);
+            let cardCount = cardNames.length;
+            let displayedNames = cardNames.slice(0, 10); // Show up to 10 names
+            let extraCount = cardCount > 10 ? `+${cardCount - 10} more cards` : '';
+    
+            let modalMessage = `Adding selected cards to the collection: ${displayedNames.join(', ')}`;
+            if (extraCount) {
+                modalMessage += ` (${extraCount})`;
+            }
+    
+            alert(modalMessage);
         } else {
             alert('No cards selected.');
         }
     });
 </script>
+
 {% endblock %}
