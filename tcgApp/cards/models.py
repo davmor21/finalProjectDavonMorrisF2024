@@ -23,15 +23,15 @@ class Collection(models.Model):
 
 
 class Card(models.Model):
+    card_name = models.CharField(max_length=255)
+    card_type = models.CharField(max_length=255)
+    color = models.CharField(max_length=255, blank=True)
+    image_url = models.URLField(blank=True)  # URL of the card image
+    mana_cost = models.CharField(max_length=255, blank=True)
+    price_usd = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    set_name = models.CharField(max_length=255, blank=True)
+    quantity = models.IntegerField(default=1)
     collection = models.ForeignKey(Collection, on_delete=models.CASCADE)
-    card_name = models.CharField(max_length=200)
-    card_type = models.CharField(max_length=100, blank=True)  # Store card type (creature, instant, etc.)
-    color = models.CharField(max_length=50, blank=True)  # Store color (Red, Green, etc.)
-    mana_cost = models.CharField(max_length=50, blank=True)  # Store mana cost (e.g., {1}{G}, etc.)
-    set_name = models.CharField(max_length=100, blank=True)  # Store the set name (e.g., Core Set 2020)
-    image_url = models.URLField(blank=True)  # Store image URL of the card
-    price_usd = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)  # Store card price
-    quantity = models.PositiveIntegerField(default=1)
 
     def __str__(self):
         return self.card_name

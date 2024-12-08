@@ -113,7 +113,7 @@
             let cardFacesHtml = '';
             if (isSplitCard) {
                 // Generate HTML for the front and back faces of the card
-                cardFacesHtml = `
+                cardFacesHtml = ` 
                     <div id="front-${card.id}" class="card-face">
                         <img src="${card.card_faces[0].image_uris.png}" alt="Front of ${cardName}" class="card-img-top">
                     </div>
@@ -123,7 +123,7 @@
                 `;
             } else {
                 // Only show one face for normal cards
-                cardFacesHtml = `
+                cardFacesHtml = ` 
                     <div id="front-${card.id}" class="card-face">
                         <img src="${cardImageUrl}" alt="${cardName}" class="card-img-top">
                     </div>
@@ -194,26 +194,56 @@
             cardElement.innerHTML = `
                 <div class="card selected-card" id="selected-card-${card.id}">
                     <img src="${card.image}" alt="Selected Card" class="card-img-top" onmouseover="this.style.transform='scale(1.5)'" onmouseout="this.style.transform='scale(1)'">
+                    <div class="card-body">
+                        <h5 class="card-title">${card.name}</h5>
+                        <button type="button" class="btn btn-danger unselect-card" data-id="${card.id}">Unselect</button>
+                    </div>
                 </div>
             `;
             selectedGrid.appendChild(cardElement);
+
+            // Add event listener to handle unselecting the card
+            cardElement.querySelector('.unselect-card').addEventListener('click', function() {
+                let cardId = this.getAttribute('data-id');
+                unselectCard(cardId);
+            });
         });
+    }
+
+    // Function to unselect a card
+    function unselectCard(cardId) {
+        selectedCards = selectedCards.filter(card => card.id !== cardId);
+        updateSelectedCardsGrid();  // Update the grid after unselecting
     }
 
     // Add all selected cards to the collection
     document.getElementById('add-selected').addEventListener('click', function() {
         if (selectedCards.length > 0) {
-            let cardNames = selectedCards.map(card => card.name);
-            let cardCount = cardNames.length;
-            let displayedNames = cardNames.slice(0, 10); // Show up to 10 names
-            let extraCount = cardCount > 10 ? `+${cardCount - 10} more cards` : '';
-    
-            let modalMessage = `Adding selected cards to the collection: ${displayedNames.join(', ')}`;
-            if (extraCount) {
-                modalMessage += ` (${extraCount})`;
-            }
-    
-            alert(modalMessage);
+            // Send the selected cards to the backend
+            let selectedData = selectedCards.map(card => {
+                let quantityInput = document.querySelector(`input[name='quantity_${card.id}']`);
+                let quantity = quantityInput ? quantityInput.value : 1;  // Default to 1 if no quantity is entered
+                return `${card.name},${card.image},${quantity}`;
+            });
+
+            // Send the data to the backend (via AJAX)
+            fetch(`/add_cards_to_collection/${collection.id}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({ selected_cards: selectedData })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert(data.message);
+                    // Optionally, update the collection UI here
+                } else {
+                    alert('Failed to add cards to collection.');
+                }
+            });
         } else {
             alert('No cards selected.');
         }

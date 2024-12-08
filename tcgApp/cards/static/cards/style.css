@@ -37,6 +37,11 @@ a {
 .card-item{
     border: none !important;
 }
+
+h5.card-title{
+    font-size: medium;
+}
+
 *{
     border: none;
 }

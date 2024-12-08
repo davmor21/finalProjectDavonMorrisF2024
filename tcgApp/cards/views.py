@@ -142,38 +142,21 @@ class AddCardForm(forms.Form):
     card_name = forms.CharField(max_length=255, label="Card Name")
 
 # Function to handle adding a new card
-def add_card_to_collection(request, collection_id):
-    collection = Collection.objects.get(pk=collection_id)
+def add_cards_to_collection(request, collection_id):
+    collection = Collection.objects.get(id=collection_id)
 
-    if request.method == 'POST':
-        form = AddCardForm(request.POST)
-        if form.is_valid():
-            card_name = form.cleaned_data['card_name']
+    # Extract the card details from the request (sent via AJAX or form submission)
+    selected_cards = request.POST.getlist('selected_cards')  # A list of selected card data
 
-            # Fetch card data from Scryfall
-            card_data = fetch_card_data(card_name)
+    # Add each selected card to the collection
+    for card_data in selected_cards:
+        card_data = card_data.split(',')
+        card_name, card_image_url, card_quantity = card_data[0], card_data[1], int(card_data[2])
 
-            if card_data:
-                # Create and save the card
-                card = Card(
-                    collection=collection,
-                    card_name=card_data['card_name'],
-                    card_type=card_data['card_type'],
-                    color=card_data['color'],
-                    mana_cost=card_data['mana_cost'],
-                    set_name=card_data['set_name'],
-                    image_url=card_data['image_url'],
-                    price_usd=card_data['price_usd']
-                )
-                card.save()
+        # Add card to collection (or update if already exists)
+        card, created = Card.objects.get_or_create(card_name=card_name, collection=collection)
+        card.image_url = card_image_url
+        card.quantity += card_quantity  # Add the quantity of this card to the existing quantity
+        card.save()
 
-                return redirect('cards:collection', collection_id=collection.id)
-            else:
-                # Handle the case where card is not found
-                form.add_error('card_name', 'Card not found in Scryfall API')
-
-    else:
-        form = AddCardForm()
-
-    return render(request, 'cards/add_card.html', {'form': form, 'collection': collection})
-
+    return JsonResponse({'status': 'success', 'message': 'Cards added to collection.'})
