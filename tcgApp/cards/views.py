@@ -15,7 +15,8 @@ from .models import Card, Collection
 
 @login_required(login_url="/users/login/")
 def IndexView(request):
-    latest_collection_list = Collection.objects.order_by("-pub_date")[:5]
+    # Filter collections by logged-in user
+    latest_collection_list = Collection.objects.filter(user=request.user).order_by("-pub_date")[:5]
     return render(request, 'cards/index.html', {'latest_collection_list': latest_collection_list})
 
 
@@ -27,14 +28,15 @@ class CollectionView(LoginRequiredMixin, generic.DetailView):
 
     def get_queryset(self):
         """
-        Excludes any collections that aren't published yet.
+        Filters collections to only include those belonging to the logged-in user.
         """
-        return Collection.objects.filter(pub_date__lte=timezone.now())
+        return Collection.objects.filter(pub_date__lte=timezone.now(), user=self.request.user)
+
 
 
 @login_required(login_url="/users/login/")
 def submit(request, collection_id):
-    collection = get_object_or_404(Collection, pk=collection_id)
+    collection = get_object_or_404(Collection, pk=collection_id, user=request.user)  # Ensure ownership
 
     if request.method == "POST":
         # Step 1: Handle deletions
@@ -67,14 +69,16 @@ def submit(request, collection_id):
 
 
 
+
 @login_required(login_url="/users/login/")
 def remove_collection(request, collection_id):
-    collection = get_object_or_404(Collection, pk=collection_id)
+    collection = get_object_or_404(Collection, pk=collection_id, user=request.user)  # Ensure ownership
     if request.method == "POST":
         collection.delete()  # Delete the collection
         return redirect('cards:index')  # Redirect back to the home page after deletion
     else:
         return redirect('cards:index')  # Redirect if method is not POST
+
 
 class CollectionForm(forms.ModelForm):
     class Meta:
@@ -94,12 +98,17 @@ def add_collection(request):
         if form.is_valid():
             # Create a new collection
             collection = form.save(commit=False)
-            collection.user = request.user  # Optionally associate with the logged-in user
-            collection.pub_date = timezone.now()  # Set current timestamp as publish date
+            collection.user = request.user
+            collection.pub_date = timezone.now()
             collection.save()
-            return redirect('cards:index')  # Redirect to the homepage after saving the new collection
+            return redirect('cards:index')
     else:
         # If the request is GET, show an empty form
         form = CollectionForm()
 
     return render(request, 'cards/add_collection.html', {'form': form})
+
+@login_required
+def user_collections(request):
+    collections = Collection.objects.filter(user=request.user)  # Filter by logged-in user
+    return render(request, 'cards/collection.html', {'collections': collections})
