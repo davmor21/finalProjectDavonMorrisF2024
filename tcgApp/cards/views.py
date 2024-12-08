@@ -133,20 +133,45 @@ def fetch_card_data(card_name):
 
     # Extract card details, providing defaults if the data is missing
     card_info = {
-        'card_name': data.get('name', 'N/A'),  # Card name, default 'N/A' if missing
-        'card_type': data.get('type_line', 'N/A'),  # Card type, default 'N/A' if missing
-        'color': ', '.join(data.get('colors', [])) if 'colors' in data else 'N/A',  # Card color(s)
-        'mana_cost': data.get('mana_cost', 'N/A'),  # Mana cost, default 'N/A' if missing
-        'set_name': data.get('set_name', 'N/A'),  # Set name, default 'N/A' if missing
-        'image_url': data.get('image_uris', {}).get('normal', ''),  # Image URL, default '' if missing
-        'price_usd': data.get('prices', {}).get('usd', 'N/A'),  # Price, default 'N/A' if missing
+        'card_name': data.get('name', 'N/A'),
+        'card_type': data.get('type_line', 'N/A'),
+        'color': ', '.join(data.get('colors', [])) if 'colors' in data else 'N/A',
+        'mana_cost': data.get('mana_cost', 'N/A'),
+        'set_name': data.get('set_name', 'N/A'),
+        'price_usd': data.get('prices', {}).get('usd', 'N/A'),
     }
+
+    # Handle double-sided cards (fetch details from both sides)
+    if 'card_faces' in data:
+        # First face
+        first_face = data['card_faces'][0]
+        card_info['card_name'] = first_face.get('name', card_info['card_name'])
+        card_info['card_type'] = first_face.get('type_line', card_info['card_type'])
+        card_info['color'] = ', '.join(first_face.get('colors', [])) if 'colors' in first_face else card_info['color']
+        card_info['mana_cost'] = first_face.get('mana_cost', card_info['mana_cost'])
+        card_info['image_url'] = first_face.get('image_uris', {}).get('normal', '')
+
+        # Second face (if it exists and the first face doesn't provide data)
+        if len(data['card_faces']) > 1:
+            second_face = data['card_faces'][1]
+            # For the second face, use its image and mana cost if not set by the first face
+            if not card_info['image_url']:
+                card_info['image_url'] = second_face.get('image_uris', {}).get('normal', '')
+            if card_info['mana_cost'] == 'N/A':
+                card_info['mana_cost'] = second_face.get('mana_cost', 'N/A')
+            if card_info['color'] == 'N/A':
+                card_info['color'] = ', '.join(second_face.get('colors', [])) if 'colors' in second_face else 'N/A'
+
+    # If no image URL is set, leave it blank or provide a default
+    if not card_info['image_url']:
+        card_info['image_url'] = ''  # Or set a default placeholder image URL
 
     logger.info("Fetched data for card '%s': %s", card_name, card_info)
     return card_info
 
 
-# Function to handle adding a new card via AJAX
+
+@login_required
 def add_cards_to_collection(request, collection_id):
     try:
         if request.method == 'POST':
@@ -163,40 +188,21 @@ def add_cards_to_collection(request, collection_id):
             # Process each selected card and add it to the collection
             for card_data in selected_cards:
                 card_name = card_data.get('name')
+                card_image_url = card_data.get('image', '')  # Get image URL, default to empty string if missing
                 card_quantity = card_data.get('quantity', 1)
-
-                # Fetch the card data from Scryfall API
-                card_info = fetch_card_data(card_name)
-                if card_info is None:
-                    continue  # Skip if the card is not found
-
-                card_image_url = card_info.get('image_url', '')
-                card_price_usd = card_info.get('price_usd', 'N/A')
-                card_type = card_info.get('card_type', 'N/A')
-                card_color = card_info.get('color', 'N/A')
-                card_mana_cost = card_info.get('mana_cost', 'N/A')
-                card_set_name = card_info.get('set_name', 'N/A')
 
                 # Log the card details for debugging
                 logger.info(f"Processing card: {card_name}, Image URL: {card_image_url}, Quantity: {card_quantity}")
 
-                # If no image_url, set it to an empty string or handle it as needed
+                # Handle missing image_url gracefully
                 if not card_image_url:
-                    card_image_url = ''  # or set a default image URL if appropriate
+                    card_image_url = ''  # You can replace with a default image URL if preferred
 
                 # Check if the card already exists in the collection
                 card, created = Card.objects.get_or_create(
                     card_name=card_name,  # Ensure the card name matches
                     collection=collection,  # Ensure it's in the correct collection
-                    defaults={
-                        'image_url': card_image_url,
-                        'quantity': card_quantity,
-                        'card_type': card_type,
-                        'color': card_color,
-                        'mana_cost': card_mana_cost,
-                        'set_name': card_set_name,
-                        'price_usd': card_price_usd
-                    }
+                    defaults={'image_url': card_image_url, 'quantity': card_quantity}
                 )
 
                 # If the card already exists, update the quantity
@@ -219,6 +225,7 @@ def add_cards_to_collection(request, collection_id):
         # Log the error for debugging
         logger.error(f"Error occurred while adding cards to collection '{collection_id}': {str(e)}")
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
 
 @login_required
 def collection_detail(request, collection_id):
