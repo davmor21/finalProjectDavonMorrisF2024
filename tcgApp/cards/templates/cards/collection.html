@@ -5,75 +5,109 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3 mt-4">
     <form id="cardForm" action="{% url 'cards:submit' collection.id %}" method="post">
-    {% csrf_token %}
-    <fieldset>
-        <legend><h2 id="collection-name">{{ collection.collection_name }}</h2></legend>
-        {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+        {% csrf_token %}
+        <fieldset>
+            <legend><h2 id="collection-name">{{ collection.collection_name }}</h2></legend>
+            {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
-        <!-- Search Bar and Results Section -->
-        <div id="search-section" class="mb-4">
-            <h3>Search for a Card</h3>
-            <input type="text" id="cardSearchInput" class="form-control" placeholder="Search for a card...">
-            <button type="button" id="searchButton" class="btn btn-primary mt-2">Search</button>
-        </div>
-
-        <!-- Grid of Search Results -->
-        <div id="search-results-grid" class="row">
-            <!-- Dynamically populated cards will go here -->
-        </div>
-
-        <!-- Selected Cards Section -->
-        <div id="selected-cards-section" class="mt-4">
-            <h3>Selected Cards</h3>
-            <div id="selected-cards-grid" class="row">
-                <!-- Dynamically populated selected cards will go here -->
+            <!-- Search Bar and Results Section -->
+            <div id="search-section" class="mb-4">
+                <h3>Search for a Card</h3>
+                <input type="text" id="cardSearchInput" class="form-control" placeholder="Search for a card...">
+                <button type="button" id="searchButton" class="btn btn-primary mt-2">Search</button>
             </div>
-        </div>
 
-        <!-- Add Selected Cards to Collection -->
-        <button type="button" id="add-selected" class="btn btn-secondary mt-3">Add Selected Cards to Collection</button>
+            <!-- Grid of Search Results -->
+            <div id="search-results-grid" class="row">
+                <!-- Dynamically populated cards will go here -->
+            </div>
 
-        <!-- Existing Cards List in Table Format (unchanged) -->
-        <h3 class="mt-4">Existing Cards</h3>
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Card Name</th>
-                    <th>Card Type</th>
-                    <th>Color</th>
-                    <th>Mana Cost</th>
-                    <th>Set Name</th>
-                    <th>Price</th>
-                    <th>Quantity</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for card in collection.card_set.all %}
-                <tr id="card_{{ card.id }}">
-                    <td>{{ card.card_name }}</td>
-                    <td>{{ card.card_type }}</td>
-                    <td>{{ card.color }}</td>
-                    <td>{{ card.mana_cost }}</td>
-                    <td>{{ card.set_name }}</td>
-                    <td>${{ card.price_usd|default:0 }}</td>
-                    <td>
-                        <div class="input-group">
-                            <input type="number" name="quantity_{{ card.id }}" class="form-control" value="{{ card.quantity }}" min="0">
-                        </div>
-                    </td>
-                    <td>
-                        <button type="button" class="btn btn-danger" onclick="removeCardFromCollection({{ card.id }})">Remove</button>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </fieldset>
+            <!-- Selected Cards Section -->
+            <div id="selected-cards-section" class="mt-4">
+                <h3>Selected Cards</h3>
+                <div id="selected-cards-grid" class="row">
+                    <!-- Dynamically populated selected cards will go here -->
+                </div>
+            </div>
+
+            <!-- Add Selected Cards to Collection -->
+            <button type="button" id="add-selected" class="btn btn-secondary mt-3">Add Selected Cards to Collection</button>
+
+            <!-- Sticky Section for "Existing Cards" header and Save Changes button -->
+            <div class="floating-header sticky-top bg-light p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="mt-4">Existing Cards</h3>
+                    <button type="submit" class="btn btn-success mt-3">Save Changes</button>
+                </div>
+            </div>
+
+            <!-- Existing Cards List in Table Format -->
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Card Image</th>
+                        <th>Card Name</th>
+                        <th>Card Type</th>
+                        <th>Color</th>
+                        <th>Mana Cost</th>
+                        <th>Set Name</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for card in collection.card_set.all %}
+                    <tr id="card_{{ card.id }}">
+                        <td>
+                            <img src="{{ card.image_url }}" alt="{{ card.card_name }}" class="img-thumbnail" style="width: 60px;">
+                        </td>
+                        <td>{{ card.card_name }}</td>
+                        <td>{{ card.card_type }}</td>
+                        <td>{{ card.color }}</td>
+                        <td>{{ card.mana_cost }}</td>
+                        <td>{{ card.set_name }}</td>
+                        <td>${{ card.price_usd|default:0 }}</td>
+                        <td>
+                            <div class="input-group">
+                                <input type="number" name="quantity_{{ card.id }}" class="form-control" value="{{ card.quantity }}" min="0">
+                            </div>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-danger" onclick="removeCardFromCollection({{ card.id }})">Remove</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </fieldset>
     </form>
 </div>
 
 <script>
+    // Function to remove card from collection
+    function removeCardFromCollection(cardId) {
+        const collectionId = {{ collection.id }};  // Get the current collection's ID
+        
+        fetch(`/remove_card_from_collection/${collectionId}/${cardId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Remove the card from the UI or reload the page
+                document.getElementById(`card_${cardId}`).remove();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
     // Function to search for cards and display them
     document.getElementById('searchButton').addEventListener('click', function() {
         let searchQuery = document.getElementById('cardSearchInput').value;
@@ -130,7 +164,7 @@
                 `;
             }
 
-            cardElement.innerHTML = `
+            cardElement.innerHTML = ` 
                 <div class="card card-item" data-id="${card.id}" id="card-${card.id}">
                     <h5 class="card-title">${cardName}</h5>
                     ${cardFacesHtml}
@@ -175,49 +209,50 @@
     let selectedCards = [];
 
     function handleCardSelection(button, cardId, cardName, cardImageUrl) {
+        if (!cardImageUrl) {
+            cardImageUrl = `https://via.placeholder.com/150?text=${cardName}`; // Set a placeholder if no image URL
+        }
+
         if (button.classList.contains('btn-success')) {
-            selectedCards.push({ id: cardId, name: cardName, image: cardImageUrl });
+            selectedCards.push({ id: cardId, name: cardName, imageUrl: cardImageUrl });
         } else {
             selectedCards = selectedCards.filter(card => card.id !== cardId);
         }
-        updateSelectedCardsGrid();
-        updateSearchButtonState(cardId, button);  // Update search button state after selection/unselection
-    }
 
-    // Update the "Selected Cards" grid
-    function updateSelectedCardsGrid() {
-        let selectedGrid = document.getElementById('selected-cards-grid');
-        selectedGrid.innerHTML = ''; // Clear previous selected cards
+        let selectedCardsGrid = document.getElementById('selected-cards-grid');
+        selectedCardsGrid.innerHTML = '';  // Clear existing selected cards
 
         selectedCards.forEach(card => {
-            let cardElement = document.createElement('div');
-            cardElement.classList.add('col-md-3', 'mb-3');
-            cardElement.innerHTML = `
-                <div class="card selected-card" id="selected-card-${card.id}">
-                    <img src="${card.image}" alt="Selected Card" class="card-img-top" onmouseover="this.style.transform='scale(1.5)'" onmouseout="this.style.transform='scale(1)'">
-                    <div class="card-body">
-                        <h5 class="card-title">${card.name}</h5>
-                        <button type="button" class="btn btn-danger unselect-card" data-id="${card.id}">Unselect</button>
-                    </div>
+            let selectedCardElement = document.createElement('div');
+            selectedCardElement.classList.add('col-md-3', 'mb-3');
+            selectedCardElement.innerHTML = `
+                <div class="card card-item">
+                    <img src="${card.imageUrl}" alt="${card.name}" class="card-img-top">
+                    <h5 class="card-title">${card.name}</h5>
+                    <button class="btn btn-outline-danger unselect-card" data-id="${card.id}">Unselect</button>
                 </div>
             `;
-            selectedGrid.appendChild(cardElement);
+            selectedCardsGrid.appendChild(selectedCardElement);
+        });
 
-            // Add event listener to handle unselecting the card
-            cardElement.querySelector('.unselect-card').addEventListener('click', function() {
+        // Reattach event listener for unselect buttons
+        document.querySelectorAll('.unselect-card').forEach(button => {
+            button.addEventListener('click', function() {
                 let cardId = this.getAttribute('data-id');
-                unselectCard(cardId);
+                let cardElement = document.getElementById(`card-${cardId}`);
+
+                // Remove the card from the selected cards list
+                selectedCards = selectedCards.filter(card => card.id !== cardId);
+                cardElement.querySelector('.select-card').classList.toggle('btn-success', false);
+                cardElement.querySelector('.select-card').classList.toggle('btn-outline-primary', true);
+                cardElement.querySelector('.select-card').textContent = 'Select';
+
+                this.closest('.card-item').remove();  // Remove from the selected list UI
             });
         });
     }
 
-    // Function to unselect a card
-    function unselectCard(cardId) {
-        selectedCards = selectedCards.filter(card => card.id !== cardId);
-        updateSelectedCardsGrid();  // Update the grid after unselecting
-    }
-
-    // Add all selected cards to the collection
+    // Function to handle adding selected cards to the collection
     document.getElementById('add-selected').addEventListener('click', function() {
         if (selectedCards.length > 0) {
             // Send the selected cards to the backend
@@ -254,5 +289,6 @@
         }
     });
 </script>
+
 
 {% endblock %}

@@ -41,6 +41,9 @@ a {
 h5.card-title{
     font-size: medium;
 }
+td{
+    width: 200px;
+}
 
 *{
     border: none;
@@ -226,7 +229,8 @@ nav a {
     .container,
     .login-register-screen,
     .card-header,
-    .card-body
+    .card-body,
+    .floating-header
     {
         background-color: #1f1f1f !important;
     }
