@@ -181,6 +181,7 @@
             selectedCards = selectedCards.filter(card => card.id !== cardId);
         }
         updateSelectedCardsGrid();
+        updateSearchButtonState(cardId, button);  // Update search button state after selection/unselection
     }
 
     // Update the "Selected Cards" grid
@@ -222,12 +223,12 @@
             // Send the selected cards to the backend
             let selectedData = selectedCards.map(card => {
                 let quantityInput = document.querySelector(`input[name='quantity_${card.id}']`);
-                let quantity = quantityInput ? quantityInput.value : 1;  // Default to 1 if no quantity is entered
-                return `${card.name},${card.image},${quantity}`;
+                let quantity = quantityInput ? quantityInput.value : 1;
+                return { name: card.name, image: card.image, quantity: quantity };  // Sending objects
             });
 
             // Send the data to the backend (via AJAX)
-            fetch(`/add_cards_to_collection/${collection.id}/`, {
+            fetch(`/add_cards_to_collection/{{ collection.id }}/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -238,12 +239,16 @@
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    alert(data.message);
-                    // Optionally, update the collection UI here
+                    // Reload the page to reflect the changes
+                    location.reload();
                 } else {
-                    alert('Failed to add cards to collection.');
+                    alert('Error: ' + data.message);
                 }
+            })
+            .catch(error => {
+                console.error('Error:', error);
             });
+
         } else {
             alert('No cards selected.');
         }

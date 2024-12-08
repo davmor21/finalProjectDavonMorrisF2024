@@ -1,26 +1,21 @@
 from django.db.models import F
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
-from .models import Card
-import requests
+from .models import Card, Collection
 from django import forms
 from django.views import generic
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+import requests
 import json
-
-from .models import Card, Collection
 
 @login_required(login_url="/users/login/")
 def IndexView(request):
     # Filter collections by logged-in user
     latest_collection_list = Collection.objects.filter(user=request.user).order_by("-pub_date")[:5]
     return render(request, 'cards/index.html', {'latest_collection_list': latest_collection_list})
-
 
 class CollectionView(LoginRequiredMixin, generic.DetailView):
     login_url = "/users/login/"
@@ -33,8 +28,6 @@ class CollectionView(LoginRequiredMixin, generic.DetailView):
         Filters collections to only include those belonging to the logged-in user.
         """
         return Collection.objects.filter(pub_date__lte=timezone.now(), user=self.request.user)
-
-
 
 @login_required(login_url="/users/login/")
 def submit(request, collection_id):
@@ -69,9 +62,6 @@ def submit(request, collection_id):
 
     return render(request, "cards/collection.html", {"collection": collection})
 
-
-
-
 @login_required(login_url="/users/login/")
 def remove_collection(request, collection_id):
     collection = get_object_or_404(Collection, pk=collection_id, user=request.user)  # Ensure ownership
@@ -80,7 +70,6 @@ def remove_collection(request, collection_id):
         return redirect('cards:index')  # Redirect back to the home page after deletion
     else:
         return redirect('cards:index')  # Redirect if method is not POST
-
 
 class CollectionForm(forms.ModelForm):
     class Meta:
@@ -115,7 +104,6 @@ def user_collections(request):
     collections = Collection.objects.filter(user=request.user)  # Filter by logged-in user
     return render(request, 'cards/collection.html', {'collections': collections})
 
-
 def fetch_card_data(card_name):
     url = f"https://api.scryfall.com/cards/named?fuzzy={card_name}"
     response = requests.get(url)
@@ -138,25 +126,42 @@ def fetch_card_data(card_name):
 
     return card_info
 
-class AddCardForm(forms.Form):
-    card_name = forms.CharField(max_length=255, label="Card Name")
-
-# Function to handle adding a new card
+# Function to handle adding a new card via AJAX
 def add_cards_to_collection(request, collection_id):
-    collection = Collection.objects.get(id=collection_id)
+    try:
+        if request.method == 'POST':
+            # Ensure the collection exists
+            collection = get_object_or_404(Collection, id=collection_id)
 
-    # Extract the card details from the request (sent via AJAX or form submission)
-    selected_cards = request.POST.getlist('selected_cards')  # A list of selected card data
+            # Parse the JSON data
+            data = json.loads(request.body)
+            selected_cards = data.get('selected_cards', [])
 
-    # Add each selected card to the collection
-    for card_data in selected_cards:
-        card_data = card_data.split(',')
-        card_name, card_image_url, card_quantity = card_data[0], card_data[1], int(card_data[2])
+            if not selected_cards:
+                return JsonResponse({'status': 'error', 'message': 'No cards selected'}, status=400)
 
-        # Add card to collection (or update if already exists)
-        card, created = Card.objects.get_or_create(card_name=card_name, collection=collection)
-        card.image_url = card_image_url
-        card.quantity += card_quantity  # Add the quantity of this card to the existing quantity
-        card.save()
+            # Process each selected card and add it to the collection
+            for card_data in selected_cards:
+                card_name = card_data.get('name')
+                card_image_url = card_data.get('image')
+                card_quantity = card_data.get('quantity', 1)
 
-    return JsonResponse({'status': 'success', 'message': 'Cards added to collection.'})
+                # Check if the card already exists in the collection
+                card, created = Card.objects.get_or_create(
+                    card_name=card_name,  # Ensure the card name matches
+                    collection=collection,  # Ensure it's in the correct collection
+                    defaults={'image_url': card_image_url, 'quantity': card_quantity}
+                )
+
+                # If the card already exists, update the quantity
+                if not created:
+                    card.quantity += card_quantity
+                    card.save()
+
+            return JsonResponse({'status': 'success', 'message': 'Cards added to collection'})
+
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
+
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
