@@ -122,15 +122,17 @@
     // Sorting functionality for Existing Cards
     document.getElementById('sort-by').addEventListener('change', function () {
     let sortBy = this.value;
+
+    // Handle grid sorting (no changes needed)
     let grid = document.getElementById('collection-grid');
     let cardContainers = Array.from(grid.getElementsByClassName('col-6')); // Get each card container
-    
+
     function getSortValue(container, selector, isNumber = false) {
         let value = container.querySelector(selector)?.textContent.trim() || '';
         return isNumber ? parseFloat(value.replace('$', '').trim()) || 0 : value.toLowerCase();
     }
 
-    // Sort cards based on the selected option
+    // Sort cards in the grid based on the selected option
     function sortCards(cardContainers) {
         cardContainers.sort((containerA, containerB) => {
             let cardA = containerA.querySelector('.card');
@@ -170,10 +172,55 @@
     // Sort and update the grid
     let sortedContainers = sortCards(cardContainers);
     updateGrid(sortedContainers);
+
+    // Now handle the table sorting
+    let tbody = document.querySelector('#existing-cards-table'); // Corrected selector
+
+    // Check if tbody exists, if not log a warning and return
+    if (!tbody) {
+        console.warn('Table body not found!');
+        return;
+    }
+
+    let rows = Array.from(tbody.getElementsByTagName('tr')); // Only select rows in tbody
+
+    rows.sort((rowA, rowB) => {
+        let valA, valB;
+        switch (sortBy) {
+            case 'name-asc':
+                // Sort by Name A-Z (second column, card name)
+                valA = rowA.querySelector('td:nth-child(2)').textContent.trim().toLowerCase();
+                valB = rowB.querySelector('td:nth-child(2)').textContent.trim().toLowerCase();
+                return (valA < valB) ? -1 : (valA > valB) ? 1 : 0;
+            case 'name-desc':
+                // Sort by Name Z-A
+                valA = rowA.querySelector('td:nth-child(2)').textContent.trim().toLowerCase();
+                valB = rowB.querySelector('td:nth-child(2)').textContent.trim().toLowerCase();
+                return (valA > valB) ? -1 : (valA < valB) ? 1 : 0;
+            case 'price-asc':
+                // Sort by Price $-$$ (seventh column, price)
+                valA = parseFloat(rowA.querySelector('td:nth-child(7)').textContent.replace('$', '').trim());
+                valB = parseFloat(rowB.querySelector('td:nth-child(7)').textContent.replace('$', '').trim());
+                return valA - valB; // Ascending order for price
+            case 'price-desc':
+                // Sort by Price $$-$
+                valA = parseFloat(rowA.querySelector('td:nth-child(7)').textContent.replace('$', '').trim());
+                valB = parseFloat(rowB.querySelector('td:nth-child(7)').textContent.replace('$', '').trim());
+                return valB - valA; // Descending order for price
+            default:
+                return 0;
+        }
+    });
+
+    // Append sorted rows back into the tbody element
+    rows.forEach(row => tbody.appendChild(row));
 });
 
 
 
+
+
+    
 
     // Function to remove card from collection
     function removeCardFromCollection(cardId) {
