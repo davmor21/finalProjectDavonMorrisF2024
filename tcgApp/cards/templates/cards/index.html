@@ -13,10 +13,12 @@
         {% for collection in latest_collection_list %}
         <li class="list-group-item d-flex justify-content-between align-items-center" id="collection-list-item">
             <div>
-                <a href="{% url 'cards:detail' collection.id %}" id="collection-list-link">{{ collection.collection_name }}</a>
+                <a href="{% url 'cards:detail' collection.id %}" id="collection-list-link">
+                    <h3>{{ collection.collection_name }}</h3>
+                </a>
                 <small class="d-block text-muted">Cards: {{ collection.cards.count }} | Total Price: ${{ collection.total_price }}</small>
             </div>
-            <button type="button" class="btn btn-danger btn-sm" onclick="openRemoveModal({{ collection.id }})">Remove</button>
+            <button type="button" class="btn btn-danger btn-sm collection-remove-btn"  onclick="openRemoveModal({{ collection.id }})">Remove</button>
         </li>
         {% endfor %}
     </ul>

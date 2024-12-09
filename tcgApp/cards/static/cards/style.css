@@ -23,6 +23,7 @@ header .action {
     display: block;
     padding: 0.5rem;
 }
+
 /* Global Body Styles */
 body {
     font-family: sans-serif;
@@ -73,6 +74,7 @@ td{
 .footer-link{
     color: #377ba8;
 }
+
 /* Flash Messages */
 .flash {
     margin: 1em 0;
@@ -124,6 +126,7 @@ input[type=submit] {
 nav a {
     color: white;
 }
+
 /* Light Mode Styles */
 @media (prefers-color-scheme: light) {
     nav{
@@ -136,17 +139,17 @@ nav a {
     .navbar-light .navbar-toggler-icon {
         background-color: black;
     }
-    
+
     /* Text and Links in Navbar */
     nav a:hover {
         color: #064666;
     }
-    
+
     /* Light Mode Text Color for Navbar Brand */
     nav a.navbar-brand {
         color: #000000;
     }
-    
+
     {
         background-color: #ffffff;
         color: #000000;
@@ -154,33 +157,33 @@ nav a {
     .content {
         background-color: white;
     }
-    
+
     .flash {
         background: #cae6f6;
         border: 1px solid #377ba8;
     }
-    
+
     .post {
         background-color: white;
         color: black;
     }
-    
+
     .post .about {
         color: slategray;
     }
-    
+
     .list-group-item {
         background-color: white;
         color: black;
     }
-    
+
     input,
     textarea {
         background-color: #f8f9fa;
         color: black;
         border: 1px solid #ddd;
     }
-    
+
     input[type=submit],
     .btn-primary {
         background-color: #377ba8;
@@ -192,27 +195,27 @@ nav a {
         color: white;  /* Ensure text is visible on the button */
         border: none;
     }
-    
+
     .nav-authentication-links .btn-secondary {
         background-color: #f8f9fa;  /* Secondary background color */
         color: #000000;  /* Ensure text is dark and visible */
         border: 1px solid #ddd;  /* Light border */
     }
-    
+
     /* Dynamic Styles for Login/Register Page */
     .card-header h2,
     .card-body label {
         color: black; /* Light mode text color */
     }
-    
-    
+
+
     /* Button Styles */
     .btn-primary {
         background-color: #377ba8;  /* Primary color */
         color: white;  /* Text color on the button */
         border: none;
     }
-    
+
     .btn-primary:hover {
         background-color: #064666;  /* Darker color on hover */
     }
@@ -285,48 +288,47 @@ nav a {
         background: #2c2c2c;
         border: 1px solid #377ba8;
     }
-    
+
     .post .about {
         color: lightgray;
     }
-    
+
     input,
     textarea {
         background-color: #444;
         border: 1px solid #555;
     }
-    
+
     input[type=submit],
     .btn-primary {
         border: none;
     }
-    
+
     .btn-primary {
         background-color: #6c757d;  /* Primary color for dark mode */
         color: white;  /* Text color on the button */
         border: none;
     }
-    
+
     .btn-primary:hover {
         background-color: #5a6268;  /* Darker color on hover */
     }
-    
+
     .card-header h2,
     .card-body label {
         color: black /* Dark mode text color */
     }
-    
-    
+
+
     .nav-authentication-links .btn-primary {
         background-color: #6c757d;  /* Primary color for dark mode */
         color: white;  /* Text color white */
         border: none;
     }
-    
+
     .nav-authentication-links .btn-secondary {
         background-color: #343a40;  /* Dark background for secondary button */
         color: white;  /* Ensure text is white */
         border: 1px solid #555;  /* Darker border */
     }
 }
-
