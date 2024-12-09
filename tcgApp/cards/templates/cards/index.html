@@ -14,7 +14,7 @@
         <li class="list-group-item d-flex justify-content-between align-items-center" id="collection-list-item">
             <div>
                 <a href="{% url 'cards:detail' collection.id %}" id="collection-list-link">
-                    <h3>{{ collection.collection_name }}</h3>
+                    <h3 class="collection-name">{{ collection.collection_name }}</h3>
                 </a>
                 <small class="d-block text-muted">Cards: {{ collection.cards.count }} | Total Price: ${{ collection.total_price }}</small>
             </div>
@@ -77,5 +77,5 @@
             form.action = `/cards/remove_collection/${collectionId}/`;  // Set the form action dynamically
             $('#removeCollectionModal').modal('show');
         }
-    </script> 
+    </script>
 {% endblock %}

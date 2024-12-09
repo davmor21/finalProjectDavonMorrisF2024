@@ -41,8 +41,8 @@
                     <div class="sort-controls">
                         <label for="sort-by">Sort by:</label>
                         <select id="sort-by" class="form-control mb-3">
-                            <option value="name-asc">Name A - Z</option>
-                            <option value="name-desc">Name Z - A</option>
+                            <option value="name-asc">A - Z</option>
+                            <option value="name-desc">Z - A</option>
                             <option value="price-asc">$ - $$</option>
                             <option value="price-desc">$$ - $</option>
                         </select>
@@ -97,7 +97,7 @@
                 <div id="collection-grid" class="row">
                     {% for card in collection.card_set.all %}
                     <div class="col-6 col-md-4 col-lg-3 mb-4">
-                        <div class="card text-center h-100">
+                        <div class="card text-center h-100" id="grid_card_{{ card.id }}">
                             <img src="{{ card.image_url }}" class="card-img-top" alt="{{ card.card_name }}">
                             <div class="card-body p-2">
                                 <h6 class="card-title mb-1">{{ card.card_name }}</h6>
@@ -215,11 +215,6 @@
     // Append sorted rows back into the tbody element
     rows.forEach(row => tbody.appendChild(row));
 });
-
-
-
-
-
     
 
     // Function to remove card from collection
@@ -238,6 +233,7 @@
             if (data.status === 'success') {
                 // Remove the card from the UI or reload the page
                 document.getElementById(`card_${cardId}`).remove();
+                document.getElementById(`grid_card_${cardId}`).remove();
             } else {
                 alert('Error: ' + data.message);
             }
@@ -378,5 +374,42 @@
             selectedCardsGrid.appendChild(cardElement);
         });
     }
+    // Function to add selected cards to the collection
+document.getElementById('add-selected').addEventListener('click', function() {
+        if (selectedCards.length > 0) {
+            // Send the selected cards to the backend
+            let selectedData = selectedCards.map(card => {
+                let quantityInput = document.querySelector(`input[name='quantity_${card.id}']`);
+                let quantity = quantityInput ? quantityInput.value : 1;
+                return { name: card.name, image: card.image, quantity: quantity };  // Sending objects
+            });
+
+            // Send the data to the backend (via AJAX)
+            fetch(`/add_cards_to_collection/{{ collection.id }}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({ selected_cards: selectedData })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Reload the page to reflect the changes
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+
+        } else {
+            alert('No cards selected.');
+        }
+    });
+
 </script>
 {% endblock %}

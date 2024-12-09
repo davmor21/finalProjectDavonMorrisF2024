@@ -122,6 +122,36 @@ nav a {
     color: white;
 }
 
+img:hover{
+        transform: scale(2.0);
+        transition: .25s;
+        z-index: 99999;
+    }
+
+@media (max-width: 768px){
+    div.sort-controls,
+    .btn{
+        transform: scale(.8);
+    }
+
+    h2.mb-0,
+    h3.collection-name{
+        font-size: medium;
+    }
+    h3.mt-4{
+        display: none;
+    }
+    small.d-block,
+    option{
+        font-size: small;
+    }
+    h6.card-title{
+        font-size: 2vw;
+    }
+    img:hover{
+        transform: scale(1.5);
+    }
+}
 
 /* Light Mode Styles */
 @media (prefers-color-scheme: light) {
