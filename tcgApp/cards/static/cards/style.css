@@ -42,12 +42,7 @@ a {
 h5.card-title{
     font-size: medium;
 }
-td{
-    width: 200px;
-    img:hover{
-       transform: scale(5);
-    }
-}
+
 #sort-by option{
     color: black;
 }
@@ -126,6 +121,7 @@ input[type=submit] {
 nav a {
     color: white;
 }
+
 
 /* Light Mode Styles */
 @media (prefers-color-scheme: light) {

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Collection Detail{% endblock %}
+{% block title %}Collection - {{ collection.collection_name }}{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3 mt-4">
@@ -46,103 +46,133 @@
                             <option value="price-asc">$ - $$</option>
                             <option value="price-desc">$$ - $</option>
                         </select>
-        
                     </div>
                     <button type="submit" class="btn btn-success mt-3">Save Changes</button>
                 </div>
             </div>
 
-{#            <!-- Sort Controls -->#}
-{#            <div class="sort-controls">#}
-{#                <label for="sort-by">Sort by:</label>#}
-{#                <select id="sort-by" class="form-control mb-3">#}
-{#                    <option value="name-asc">Name A-Z</option>#}
-{#                    <option value="name-desc">Name Z-A</option>#}
-{#                    <option value="price-asc">$-$$</option>#}
-{#                    <option value="price-desc">$$-$</option>#}
-{#                </select>#}
-{##}
-{#            </div>#}
+            <!-- Table or Grid Responsive Section -->
+            <div id="responsive-collection-container">
+                <div class="table-responsive d-none d-xl-block">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Card Image</th>
+                                <th>Card Name</th>
+                                <th>Card Type</th>
+                                <th>Color</th>
+                                <th>Mana Cost</th>
+                                <th>Set Name</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="existing-cards-table">
+                            {% for card in collection.card_set.all %}
+                            <tr id="card_{{ card.id }}">
+                                <td>
+                                    <img src="{{ card.image_url }}" alt="{{ card.card_name }}" class="img-thumbnail" style="width: 60px;">
+                                </td>
+                                <td>{{ card.card_name }}</td>
+                                <td>{{ card.card_type }}</td>
+                                <td>{{ card.color }}</td>
+                                <td>{{ card.mana_cost }}</td>
+                                <td>{{ card.set_name }}</td>
+                                <td>${{ card.price_usd|default:0 }}</td>
+                                <td>
+                                    <div class="input-group">
+                                        <input type="number" name="quantity_{{ card.id }}" class="form-control" value="{{ card.quantity }}" min="0">
+                                    </div>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-danger" onclick="removeCardFromCollection({{ card.id }})">Remove</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
 
-            <!-- Existing Cards List in Table Format -->
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Card Image</th>
-                        <th>Card Name</th>
-                        <th>Card Type</th>
-                        <th>Color</th>
-                        <th>Mana Cost</th>
-                        <th>Set Name</th>
-                        <th>Price</th>
-                        <th>Quantity</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="existing-cards-table">
+                <div id="collection-grid" class="row">
                     {% for card in collection.card_set.all %}
-                    <tr id="card_{{ card.id }}">
-                        <td>
-                            <img src="{{ card.image_url }}" alt="{{ card.card_name }}" class="img-thumbnail" style="width: 60px;">
-                        </td>
-                        <td>{{ card.card_name }}</td>
-                        <td>{{ card.card_type }}</td>
-                        <td>{{ card.color }}</td>
-                        <td>{{ card.mana_cost }}</td>
-                        <td>{{ card.set_name }}</td>
-                        <td>${{ card.price_usd|default:0 }}</td>
-                        <td>
-                            <div class="input-group">
-                                <input type="number" name="quantity_{{ card.id }}" class="form-control" value="{{ card.quantity }}" min="0">
+                    <div class="col-6 col-md-4 col-lg-3 mb-4">
+                        <div class="card text-center h-100">
+                            <img src="{{ card.image_url }}" class="card-img-top" alt="{{ card.card_name }}">
+                            <div class="card-body p-2">
+                                <h6 class="card-title mb-1">{{ card.card_name }}</h6>
+                                <p class="card-text mb-1">${{ card.price_usd|default:0 }}</p>
+                                <div class="input-group input-group-sm mb-1">
+                                    <input type="number" name="quantity_{{ card.id }}" class="form-control" value="{{ card.quantity }}" min="0">
+                                </div>
+                                <button type="button" class="btn btn-danger btn-sm" onclick="removeCardFromCollection({{ card.id }})">
+                                    <i class="bi bi-dash-circle"></i>
+                                </button>
                             </div>
-                        </td>
-                        <td>
-                            <button type="button" class="btn btn-danger" onclick="removeCardFromCollection({{ card.id }})">Remove</button>
-                        </td>
-                    </tr>
+                        </div>
+                    </div>
                     {% endfor %}
-                </tbody>
-            </table>
+                </div>
+            </div>
         </fieldset>
     </form>
 </div>
 
 <script>
     // Sorting functionality for Existing Cards
-    document.getElementById('sort-by').addEventListener('change', function() {
-        let sortBy = this.value;
-        let rows = Array.from(document.querySelectorAll('#existing-cards-table tr'));
+    document.getElementById('sort-by').addEventListener('change', function () {
+    let sortBy = this.value;
+    let grid = document.getElementById('collection-grid');
+    let cardContainers = Array.from(grid.getElementsByClassName('col-6')); // Get each card container
     
-        rows.sort((rowA, rowB) => {
+    function getSortValue(container, selector, isNumber = false) {
+        let value = container.querySelector(selector)?.textContent.trim() || '';
+        return isNumber ? parseFloat(value.replace('$', '').trim()) || 0 : value.toLowerCase();
+    }
+
+    // Sort cards based on the selected option
+    function sortCards(cardContainers) {
+        cardContainers.sort((containerA, containerB) => {
+            let cardA = containerA.querySelector('.card');
+            let cardB = containerB.querySelector('.card');
             let valA, valB;
+            
             switch (sortBy) {
                 case 'name-asc':
-                    // Sort by Name A-Z
-                    valA = rowA.querySelector('td:nth-child(2)').textContent.trim().toLowerCase();
-                    valB = rowB.querySelector('td:nth-child(2)').textContent.trim().toLowerCase();
-                    return (valA < valB) ? -1 : (valA > valB) ? 1 : 0;
+                    valA = getSortValue(cardA, '.card-title');
+                    valB = getSortValue(cardB, '.card-title');
+                    return valA.localeCompare(valB);
                 case 'name-desc':
-                    // Sort by Name Z-A
-                    valA = rowA.querySelector('td:nth-child(2)').textContent.trim().toLowerCase();
-                    valB = rowB.querySelector('td:nth-child(2)').textContent.trim().toLowerCase();
-                    return (valA > valB) ? -1 : (valA < valB) ? 1 : 0;
+                    valA = getSortValue(cardA, '.card-title');
+                    valB = getSortValue(cardB, '.card-title');
+                    return valB.localeCompare(valA);
                 case 'price-asc':
-                    // Sort by Price $-$$
-                    valA = parseFloat(rowA.querySelector('td:nth-child(7)').textContent.replace('$', '').trim());
-                    valB = parseFloat(rowB.querySelector('td:nth-child(7)').textContent.replace('$', '').trim());
-                    return valA - valB; // Ascending order for price
+                    valA = getSortValue(cardA, '.card-text', true);
+                    valB = getSortValue(cardB, '.card-text', true);
+                    return valA - valB;
                 case 'price-desc':
-                    // Sort by Price $$-$
-                    valA = parseFloat(rowA.querySelector('td:nth-child(7)').textContent.replace('$', '').trim());
-                    valB = parseFloat(rowB.querySelector('td:nth-child(7)').textContent.replace('$', '').trim());
-                    return valB - valA; // Descending order for price
+                    valA = getSortValue(cardA, '.card-text', true);
+                    valB = getSortValue(cardB, '.card-text', true);
+                    return valB - valA;
+                default:
+                    return 0;
             }
         });
-    
-        // Reattach sorted rows to table body
-        let tbody = document.getElementById('existing-cards-table');
-        rows.forEach(row => tbody.appendChild(row));
-    });
+        return cardContainers;
+    }
+
+    // Update the grid with sorted card containers
+    function updateGrid(sortedContainers) {
+        grid.innerHTML = ''; // Clear the grid before re-adding sorted items
+        sortedContainers.forEach(container => grid.appendChild(container)); // Re-append sorted containers
+    }
+
+    // Sort and update the grid
+    let sortedContainers = sortCards(cardContainers);
+    updateGrid(sortedContainers);
+});
+
+
 
 
     // Function to remove card from collection
