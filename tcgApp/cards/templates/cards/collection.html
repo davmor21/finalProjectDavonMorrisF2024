@@ -37,9 +37,32 @@
             <div class="floating-header sticky-top bg-light p-3">
                 <div class="d-flex justify-content-between align-items-center">
                     <h3 class="mt-4">Existing Cards</h3>
+                    <!-- Sort Controls -->
+                    <div class="sort-controls">
+                        <label for="sort-by">Sort by:</label>
+                        <select id="sort-by" class="form-control mb-3">
+                            <option value="name-asc">Name A-Z</option>
+                            <option value="name-desc">Name Z-A</option>
+                            <option value="price-asc">$-$$</option>
+                            <option value="price-desc">$$-$</option>
+                        </select>
+        
+                    </div>
                     <button type="submit" class="btn btn-success mt-3">Save Changes</button>
                 </div>
             </div>
+
+{#            <!-- Sort Controls -->#}
+{#            <div class="sort-controls">#}
+{#                <label for="sort-by">Sort by:</label>#}
+{#                <select id="sort-by" class="form-control mb-3">#}
+{#                    <option value="name-asc">Name A-Z</option>#}
+{#                    <option value="name-desc">Name Z-A</option>#}
+{#                    <option value="price-asc">$-$$</option>#}
+{#                    <option value="price-desc">$$-$</option>#}
+{#                </select>#}
+{##}
+{#            </div>#}
 
             <!-- Existing Cards List in Table Format -->
             <table class="table table-bordered">
@@ -56,7 +79,7 @@
                         <th>Action</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="existing-cards-table">
                     {% for card in collection.card_set.all %}
                     <tr id="card_{{ card.id }}">
                         <td>
@@ -85,6 +108,43 @@
 </div>
 
 <script>
+    // Sorting functionality for Existing Cards
+    document.getElementById('sort-by').addEventListener('change', function() {
+        let sortBy = this.value;
+        let rows = Array.from(document.querySelectorAll('#existing-cards-table tr'));
+    
+        rows.sort((rowA, rowB) => {
+            let valA, valB;
+            switch (sortBy) {
+                case 'name-asc':
+                    // Sort by Name A-Z
+                    valA = rowA.querySelector('td:nth-child(2)').textContent.trim().toLowerCase();
+                    valB = rowB.querySelector('td:nth-child(2)').textContent.trim().toLowerCase();
+                    return (valA < valB) ? -1 : (valA > valB) ? 1 : 0;
+                case 'name-desc':
+                    // Sort by Name Z-A
+                    valA = rowA.querySelector('td:nth-child(2)').textContent.trim().toLowerCase();
+                    valB = rowB.querySelector('td:nth-child(2)').textContent.trim().toLowerCase();
+                    return (valA > valB) ? -1 : (valA < valB) ? 1 : 0;
+                case 'price-asc':
+                    // Sort by Price $-$$
+                    valA = parseFloat(rowA.querySelector('td:nth-child(7)').textContent.replace('$', '').trim());
+                    valB = parseFloat(rowB.querySelector('td:nth-child(7)').textContent.replace('$', '').trim());
+                    return valA - valB; // Ascending order for price
+                case 'price-desc':
+                    // Sort by Price $$-$
+                    valA = parseFloat(rowA.querySelector('td:nth-child(7)').textContent.replace('$', '').trim());
+                    valB = parseFloat(rowB.querySelector('td:nth-child(7)').textContent.replace('$', '').trim());
+                    return valB - valA; // Descending order for price
+            }
+        });
+    
+        // Reattach sorted rows to table body
+        let tbody = document.getElementById('existing-cards-table');
+        rows.forEach(row => tbody.appendChild(row));
+    });
+
+
     // Function to remove card from collection
     function removeCardFromCollection(cardId) {
         const collectionId = {{ collection.id }};  // Get the current collection's ID
@@ -147,7 +207,7 @@
             let cardFacesHtml = '';
             if (isSplitCard) {
                 // Generate HTML for the front and back faces of the card
-                cardFacesHtml = `
+                cardFacesHtml = ` 
                     <div id="front-${card.id}" class="card-face">
                         <img src="${card.card_faces[0].image_uris.png}" alt="Front of ${cardName}" class="card-img-top">
                     </div>
@@ -157,7 +217,7 @@
                 `;
             } else {
                 // Only show one face for normal cards
-                cardFacesHtml = `
+                cardFacesHtml = ` 
                     <div id="front-${card.id}" class="card-face">
                         <img src="${cardImageUrl}" alt="${cardName}" class="card-img-top">
                     </div>
@@ -219,76 +279,27 @@
             selectedCards = selectedCards.filter(card => card.id !== cardId);
         }
 
-        let selectedCardsGrid = document.getElementById('selected-cards-grid');
-        selectedCardsGrid.innerHTML = '';  // Clear existing selected cards
-
-        selectedCards.forEach(card => {
-            let selectedCardElement = document.createElement('div');
-            selectedCardElement.classList.add('col-md-3', 'mb-3');
-            selectedCardElement.innerHTML = `
-                <div class="card card-item">
-                    <img src="${card.imageUrl}" alt="${card.name}" class="card-img-top">
-                    <h5 class="card-title">${card.name}</h5>
-                    <button class="btn btn-outline-danger unselect-card" data-id="${card.id}">Unselect</button>
-                </div>
-            `;
-            selectedCardsGrid.appendChild(selectedCardElement);
-        });
-
-        // Reattach event listener for unselect buttons
-        document.querySelectorAll('.unselect-card').forEach(button => {
-            button.addEventListener('click', function() {
-                let cardId = this.getAttribute('data-id');
-                let cardElement = document.getElementById(`card-${cardId}`);
-
-                // Remove the card from the selected cards list
-                selectedCards = selectedCards.filter(card => card.id !== cardId);
-                cardElement.querySelector('.select-card').classList.toggle('btn-success', false);
-                cardElement.querySelector('.select-card').classList.toggle('btn-outline-primary', true);
-                cardElement.querySelector('.select-card').textContent = 'Select';
-
-                this.closest('.card-item').remove();  // Remove from the selected list UI
-            });
-        });
+        updateSelectedCardsGrid();
     }
 
-    // Function to handle adding selected cards to the collection
-    document.getElementById('add-selected').addEventListener('click', function() {
-        if (selectedCards.length > 0) {
-            // Send the selected cards to the backend
-            let selectedData = selectedCards.map(card => {
-                let quantityInput = document.querySelector(`input[name='quantity_${card.id}']`);
-                let quantity = quantityInput ? quantityInput.value : 1;
-                return { name: card.name, image: card.image, quantity: quantity };  // Sending objects
-            });
+    // Update the selected cards grid
+    function updateSelectedCardsGrid() {
+        let selectedCardsGrid = document.getElementById('selected-cards-grid');
+        selectedCardsGrid.innerHTML = '';
 
-            // Send the data to the backend (via AJAX)
-            fetch(`/add_cards_to_collection/{{ collection.id }}/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                },
-                body: JSON.stringify({ selected_cards: selectedData })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    // Reload the page to reflect the changes
-                    location.reload();
-                } else {
-                    alert('Error: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-
-        } else {
-            alert('No cards selected.');
-        }
-    });
+        selectedCards.forEach(card => {
+            let cardElement = document.createElement('div');
+            cardElement.classList.add('col-md-3', 'mb-3');
+            cardElement.innerHTML = `
+                <div class="card">
+                    <img src="${card.imageUrl}" alt="${card.name}" class="card-img-top">
+                    <div class="card-body">
+                        <h5 class="card-title">${card.name}</h5>
+                    </div>
+                </div>
+            `;
+            selectedCardsGrid.appendChild(cardElement);
+        });
+    }
 </script>
-
-
 {% endblock %}

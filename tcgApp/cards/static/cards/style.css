@@ -47,6 +47,9 @@ td{
        transform: scale(5);
     }
 }
+#sort-by option{
+    color: black;
+}
 
 *{
     border: none;
