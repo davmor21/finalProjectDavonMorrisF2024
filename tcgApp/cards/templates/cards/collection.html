@@ -88,7 +88,7 @@
     // Function to remove card from collection
     function removeCardFromCollection(cardId) {
         const collectionId = {{ collection.id }};  // Get the current collection's ID
-        
+
         fetch(`/remove_card_from_collection/${collectionId}/${cardId}/`, {
             method: 'POST',
             headers: {
@@ -147,7 +147,7 @@
             let cardFacesHtml = '';
             if (isSplitCard) {
                 // Generate HTML for the front and back faces of the card
-                cardFacesHtml = ` 
+                cardFacesHtml = `
                     <div id="front-${card.id}" class="card-face">
                         <img src="${card.card_faces[0].image_uris.png}" alt="Front of ${cardName}" class="card-img-top">
                     </div>
@@ -157,14 +157,14 @@
                 `;
             } else {
                 // Only show one face for normal cards
-                cardFacesHtml = ` 
+                cardFacesHtml = `
                     <div id="front-${card.id}" class="card-face">
                         <img src="${cardImageUrl}" alt="${cardName}" class="card-img-top">
                     </div>
                 `;
             }
 
-            cardElement.innerHTML = ` 
+            cardElement.innerHTML = `
                 <div class="card card-item" data-id="${card.id}" id="card-${card.id}">
                     <h5 class="card-title">${cardName}</h5>
                     ${cardFacesHtml}

@@ -158,11 +158,15 @@ def fetch_card_data(card_name):
         'mana_cost': data.get('mana_cost', 'N/A'),  # Mana cost, default 'N/A' if missing
         'set_name': data.get('set_name', 'N/A'),  # Set name, default 'N/A' if missing
         'image_url': data.get('image_uris', {}).get('normal', ''),  # Image URL, default '' if missing
-        'price_usd': data.get('prices', {}).get('usd', 'N/A'),  # Price, default 'N/A' if missing
+        'price_usd': data.get('prices', {}).get('usd', 0.0),  # Ensure price is set to 0.0 if missing
     }
+
+    # Ensure price_usd is never None or Null and defaults to 0 if necessary
+    card_info['price_usd'] = card_info.get('price_usd', 0.0) or 0.0
 
     logger.info("Fetched data for card '%s': %s", card_name, card_info)
     return card_info
+
 
 
 
@@ -284,3 +288,32 @@ def remove_card_from_collection(request, collection_id, card_id):
 
     # Return a success response in JSON format
     return JsonResponse({"status": "success", "message": "Card removed successfully"})
+
+
+def fetch_parsed_mana_cost(mana_cost):
+    url = f"https://api.scryfall.com/symbology/parse-mana?cost={mana_cost}"
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        return None
+
+
+def parse_mana_cost(mana_cost):
+    # Call Scryfall API to parse the mana cost
+    parsed_data = fetch_parsed_mana_cost(mana_cost)
+
+    if parsed_data:
+        # Extract the normalized cost and the colors involved
+        normalized_cost = parsed_data['cost']
+        colors = parsed_data['colors']
+        cmc = parsed_data['cmc']
+        colorless = parsed_data['colorless']
+        monocolored = parsed_data['monocolored']
+        multicolored = parsed_data['multicolored']
+
+        # Render the normalized mana cost (e.g., {X}{U}{R})
+        return normalized_cost, colors, cmc, colorless, monocolored, multicolored
+    else:
+        return None

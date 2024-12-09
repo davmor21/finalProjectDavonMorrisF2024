@@ -43,6 +43,9 @@ h5.card-title{
 }
 td{
     width: 200px;
+    img:hover{
+       transform: scale(5.0);
+    }
 }
 
 *{
