@@ -12,7 +12,7 @@
 
             <!-- Search Bar and Results Section -->
             <div id="search-section" class="mb-4">
-                <h3>Search for a Card</h3>
+                <h3 id="search-for-a-card">Search for a Card</h3>
                 <input type="text" id="cardSearchInput" class="form-control" placeholder="Search for a card...">
                 <button type="button" id="searchButton" class="btn btn-primary mt-2">Search</button>
             </div>
@@ -96,14 +96,14 @@
 
                 <div id="collection-grid" class="row">
                     {% for card in collection.card_set.all %}
-                    <div class="col-6 col-md-4 col-lg-3 mb-4">
+                    <div class="col-6 col-md-4 col-lg-3 mb-4 grid-div">
                         <div class="card text-center h-100" id="grid_card_{{ card.id }}">
                             <img src="{{ card.image_url }}" class="card-img-top" alt="{{ card.card_name }}">
                             <div class="card-body p-2">
                                 <h6 class="card-title mb-1">{{ card.card_name }}</h6>
                                 <p class="card-text mb-1">${{ card.price_usd|default:0 }}</p>
                                 <div class="input-group input-group-sm mb-1">
-                                    <input type="number" name="quantity_{{ card.id }}" class="form-control" value="{{ card.quantity }}" min="0">
+                                    <input type="number" name="quantity_{{ card.id }}" class="form-control card-quantity" value="{{ card.quantity }}" min="0">
                                 </div>
                                 <button type="button" class="btn btn-danger btn-sm" onclick="removeCardFromCollection({{ card.id }})">
                                     <i class="bi bi-dash-circle"></i>
