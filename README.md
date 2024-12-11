@@ -1,17 +1,18 @@
 ### INF601 - Advanced Programming in Python
 ### Davon Morris
-### Mini Project 4
-
-
-# Mini Project 4 - Django
+### Final Project
+---
+# Final Project - Django
 
 ## Description
 
 This project demonstrates building a web application using [Django](https://www.djangoproject.com/), a high-level Python web framework that encourages rapid development and clean, pragmatic design. 
 
-The application allows users to manage their card collection, with features to create collections, add cards to collections, and view their collection.
+The application allows users to manage their card collection, with features to create collections, add cards to collections, and view their collections.
 
+I use the [Scryfall](https://scryfall.com/docs/api) to search for cards, grab details, and add them to the user's collection
 
+---
 ## Getting Started
 
 ### Dependencies
@@ -42,7 +43,9 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
+---
 
+## Using the Site
 
 ### Go to website [http://localhost:8000/](http://localhost:8000/)
 
@@ -75,24 +78,52 @@ python manage.py runserver
 10. ### If you would like to remove cards from a collection, click the red "Remove" button on the right side of the card, and then click save at the bottom left.
 
 
-
+---
 ## Authors
 
-Davon Morris
+#### Davon Morris
+
+---
 
 ## Acknowledgments
 
-[Django Documentation](https://docs.djangoproject.com/en/5.1/)
+### Magic The Gathering
 
-[Django Tips](https://code.tutsplus.com/10-insanely-useful-django-tips--net-974t)
+&nbsp;[Magic The Gathering](https://magic.wizards.com/en) - None of this would be possible without Magic The Gathering  being a thing.
 
-[Set Login Required for Generic Views](https://stackoverflow.com/questions/2140550/how-to-require-login-for-django-generic-views)
-
-[Crispy Forms](https://simpleisbetterthancomplex.com/tutorial/2018/08/13/how-to-use-bootstrap-4-forms-with-django.html?utm_source=youtube&utm_medium=video_description&utm_campaign=django_auth_tutorial&utm_content=channels)
-
-[Bootstrap Documentation](https://getbootstrap.com/docs/4.5/getting-started/introduction/) - For styling and layout of the web pages.
-
-[Stack Overflow](https://stackoverflow.com/) - For answering specific questions and providing solutions to coding challenges.
+&nbsp;[Scryfall](https://scryfall.com/docs/api) - REST-like API that allows requests to be made to query [MTG](https://magic.wizards.com/en) Data such as cards, sets, etc.
 
 
-[W3Schools](https://www.w3schools.com/) - For clear and concise explanations of web development technologies.
+
+### Python
+
+&nbsp;[General - Stack Overflow](https://stackoverflow.com/) - For answering specific questions and providing solutions to coding challenges.
+
+### Django
+
+&nbsp;[Django Documentation](https://docs.djangoproject.com/en/5.1/) - Documentation from the Django website directly
+
+&nbsp;[Crispy Forms](https://django-crispy-forms.readthedocs.io/en/latest/) - Makes forms in Django look nice and a bit easier to configure
+
+&nbsp;[Django Tips](https://code.tutsplus.com/10-insanely-useful-django-tips--net-974t) - Some tips that are useful
+
+&nbsp;[Set Login Required for Generic Views](https://stackoverflow.com/questions/2140550/how-to-require-login-for-django-generic-views) - Helped me figure out how to set Login Required for Generic Views
+
+
+### CSS
+
+&nbsp;[Bootstrap](https://getbootstrap.com/docs/4.5/getting-started/introduction/) - For styling and layout of the web pages.
+
+&nbsp;[Bootstrap Grid](https://getbootstrap.com/docs/4.0/layout/grid/) - Used for the smaller view of the card collection
+
+&nbsp;[Bootstrap Table](https://getbootstrap.com/docs/4.0/content/tables/) - Used for table designs in the website
+
+&nbsp;[W3Schools](https://www.w3schools.com/css/default.asp) - For clear and concise explanations of web development technologies.
+
+&nbsp;[Dark Theme Suggestions/Principals](https://m2.material.io/design/color/dark-theme.html) - Helped me design my dark mode
+
+&nbsp;[Detect Dark Mode](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme) - Points to what theme the user is using, allowing us to automatically apply light or dark themes
+
+&nbsp;[Specificity](https://www.w3schools.com/css/css_specificity.asp) - Higher specificity wins, and applies its theme
+
+&nbsp;[Media Queries](https://www.w3schools.com/css/css3_mediaqueries.asp) - Allows the ability to define different style rules for different media types.
