@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 class Collection(models.Model):
     collection_name = models.CharField(max_length=200)
     pub_date = models.DateTimeField("date published")
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
 
     def __str__(self):
         return self.collection_name
@@ -24,7 +24,7 @@ class Collection(models.Model):
 
 class Card(models.Model):
     card_name = models.CharField(max_length=255)
-    card_type = models.CharField(max_length=255)
+    card_type = models.CharField(max_length=255, blank=True, null=True)  # Fix: Allow null for now
     color = models.CharField(max_length=255, blank=True)
     image_url = models.URLField(blank=True)  # URL of the card image
     mana_cost = models.CharField(max_length=255, blank=True)
@@ -35,4 +35,3 @@ class Card(models.Model):
 
     def __str__(self):
         return self.card_name
-

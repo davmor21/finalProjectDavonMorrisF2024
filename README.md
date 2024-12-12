@@ -17,18 +17,21 @@ I use the [Scryfall](https://scryfall.com/docs/api) to search for cards, grab de
 
 ### Dependencies
 
+* Clone my repository to your IDE configured to run Python 3.12
+
+
+
 ```
 pip install -r requirements.txt
 ```
 ### Installing
 
-* Clone my repository to your IDE configured to run Python 3.12
 
 ### Setup Database
 
 ```
 cd tcgapp
-
+python manage.py makemigrations
 python manage.py migrate 
 ```
 
